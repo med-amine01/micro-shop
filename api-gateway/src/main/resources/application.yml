@@ -1,0 +1,31 @@
+spring:
+  application:
+    name: API-GATEWAY
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true
+      routes:
+        - id: product-service
+          uri: lb://PRODUCT-SERVICE
+          predicates:
+            - Path=/api/v1/products/**
+
+        - id: coupon-service
+          uri: lb://COUPON-SERVICE
+          predicates:
+            - Path=/api/v1/coupons/**
+
+        - id: user-service
+          uri: lb://USER-SERVICE
+          predicates:
+            - Path=/health
+
+  # Config server
+  config:
+    import: configserver:http://config-server:8888
+
+server:
+  port: 8765
