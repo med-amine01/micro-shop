@@ -21,6 +21,7 @@
     <module>config-server</module>
     <module>coupon-service</module>
     <module>product-service</module>
+    <module>order-service</module>
   </modules>
 
   <properties>

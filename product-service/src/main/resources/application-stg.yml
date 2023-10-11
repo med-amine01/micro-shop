@@ -1,0 +1,40 @@
+#spring:
+#  application:
+#    name: PRODUCT-SERVICE
+#
+#  # Database config
+#  datasource:
+#    url: jdbc:mysql://docker-mysql:3306/product?createDatabaseIfNotExist=true
+#    username: root
+#    password: Mad123**
+#  jpa:
+#    properties:
+#      hibernate:
+#        dialect: org.hibernate.dialect.MySQL57InnoDBDialect
+#        globally_quoted_identifiers: true
+#    show-sql: true
+#    hibernate:
+#      ddl-auto: update
+#  autoconfigure:
+#    exclude: org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration
+#  data:
+#    rest:
+#      base-path: /api/v1/
+#  main:
+#    allow-circular-references: true
+#  mvc:
+#    pathmatch:
+#      matching-strategy: ANT_PATH_MATCHER
+#  config:
+#    import: configserver:http://config-server:8888
+#
+#coupon-service:
+#  url: "http://coupon-service:9091/api/v1/coupons"
+#
+#management:
+#  endpoints:
+#    web:
+#      exposure:
+#        include: "*"
+#server:
+#  port: 9090

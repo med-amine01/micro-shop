@@ -1,39 +1,5 @@
 spring:
   application:
-    name: COUPON-SERVICE
-
-  # Database config
-  datasource:
-    url: jdbc:mysql://docker-mysql:3306/coupon?createDatabaseIfNotExist=true
-    username: root
-    password: Mad123**
-  jpa:
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.MySQL57InnoDBDialect
-        globally_quot ed_identifiers: true
-    show-sql: true
-    hibernate:
-      ddl-auto: update
-  autoconfigure:
-    exclude: org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration
-  data:
-    rest:
-      base-path: /api/v1/
-  main:
-    allow-circular-references: true
-  # Config server
-  config:
-    import: configserver:http://config-server:8888
-  mvc:
-    pathmatch:
-      matching-strategy: ant_path_matcher
-
-management:
-  endpoints:
-    web:
-      exposure:
-        include: "*"
-
-server:
-  port: 9091
+    name: coupon-service
+  profiles:
+    active: dev

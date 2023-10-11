@@ -1,22 +1,5 @@
-server:
-  port: 8888
-
 spring:
   application:
-    name: CONFIG-SERVER
-  cloud:
-    config:
-      server:
-        git:
-          uri: https://github.com/med-amine01/spring-config-server
-          clone-on-start: true
-
-eureka:
-  client:
-    register-with-eureka: true
-    fetch-registry: true
-    service-url:
-      defaultZone: http://discovery-server:8761/eureka
-  instance:
-    instance-id: ${spring.application.name}:${spring.application.instance-id:${random.value}}
-    prefer-ip-address: true
+    name: config-server
+  profiles:
+    active: dev
