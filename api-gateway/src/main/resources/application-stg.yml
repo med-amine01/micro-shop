@@ -1,0 +1,18 @@
+spring:
+  application:
+    name: api-gateway
+
+  # Config server
+  config:
+    import: configserver:${stg.config.server.url}
+
+# Discovery server
+eureka:
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      defaultZone: ${stg.eureka.defaultZone}
+  instance:
+    instance-id: ${spring.application.name}:${spring.application.instance-id:${random.value}}
+    prefer-ip-address: true

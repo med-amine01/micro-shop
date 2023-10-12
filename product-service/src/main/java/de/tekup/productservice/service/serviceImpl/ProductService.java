@@ -1,5 +1,6 @@
 package de.tekup.productservice.service.serviceImpl;
 
+import de.tekup.productservice.config.RestTemplateConfig;
 import de.tekup.productservice.dto.APIResponse;
 import de.tekup.productservice.dto.CouponResponse;
 import de.tekup.productservice.dto.ProductRequestDTO;
@@ -31,7 +32,9 @@ public class ProductService implements ProductServiceInterface {
     
     private final ProductRepository productRepository;
     
-    private final WebClient.Builder webClientBuilder;
+    private final RestTemplateConfig restTemplate;
+    
+    //private final WebClient.Builder webClientBuilder;
     
     @Value("${microservices.coupon-service.endpoints.endpoint.uri}")
     private String COUPON_SERVICE_URL;
@@ -95,20 +98,14 @@ public class ProductService implements ProductServiceInterface {
             Product product = ValueMapper.convertToEntity(productRequestDTO);
             
             // Retrieving coupon from coupon-service and map it to APIResponse
-//            ResponseEntity<APIResponse<CouponResponse>> responseEntity = restTemplate.exchange(
-//                    COUPON_SERVICE_URL + "/code/" + productRequestDTO.getCouponCode(),
-//                    HttpMethod.GET,
-//                    null,
-//                    new ParameterizedTypeReference<>() {
-//                    });
+            ResponseEntity<APIResponse<CouponResponse>> responseEntity = restTemplate
+                    .getRestTemplate()
+                    .exchange(COUPON_SERVICE_URL + "/code/" + productRequestDTO.getCouponCode(),
+                    HttpMethod.GET,
+                    null,
+                    new ParameterizedTypeReference<>() {
+                    });
             
-            ResponseEntity<APIResponse<CouponResponse>> responseEntity = webClientBuilder.build()
-                    .get()
-                    .uri(COUPON_SERVICE_URL + "/code/" + productRequestDTO.getCouponCode())
-                    .retrieve()
-                    .bodyToMono(new ParameterizedTypeReference<ResponseEntity<APIResponse<CouponResponse>>>() {})
-                    .block();
-
             //Getting coupon code from coupon-service
             CouponResponse coupon = getCouponCode(responseEntity);
             

@@ -1,6 +1,9 @@
 spring:
   application:
-    name: API-GATEWAY
+    name: api-gateway
+  profiles:
+    active: dev
+
   cloud:
     gateway:
       discovery:
@@ -18,14 +21,10 @@ spring:
           predicates:
             - Path=/api/v1/coupons/**
 
-        - id: user-service
-          uri: lb://USER-SERVICE
-          predicates:
-            - Path=/health
-
-  # Config server
-  config:
-    import: configserver:http://config-server:8888
+#        - id: user-service
+#          uri: lb://USER-SERVICE
+#          predicates:
+#            - Path=/health
 
 server:
   port: 8765
