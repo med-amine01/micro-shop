@@ -11,6 +11,8 @@ import java.math.BigDecimal;
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class Product extends AbstractEntity  {
+
+    private String skuCode;
     private String name;
     private String description;
     private BigDecimal price;
