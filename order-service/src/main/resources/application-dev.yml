@@ -4,4 +4,4 @@ spring:
     import: configserver:${dev.config.server.url}
 
 server:
-  port: 9093
+  port: 0
