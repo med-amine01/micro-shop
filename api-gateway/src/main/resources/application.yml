@@ -11,25 +11,27 @@ spring:
           enabled: true
           lower-case-service-id: true
       routes:
+        ## PRODUCT-SERVICE ROUTE
         - id: product-service
           uri: lb://PRODUCT-SERVICE
           predicates:
             - Path=/api/v1/products/**
-
+        ## COUPON-SERVICE ROUTE
         - id: coupon-service
           uri: lb://COUPON-SERVICE
           predicates:
             - Path=/api/v1/coupons/**
-
+        ## ORDER-SERVICE ROUTE
         - id: order-service
           uri: lb://ORDER-SERVICE
           predicates:
             - Path=/api/v1/orders/**
-
+        ## INVENTORY-SERVICE ROUTE
         - id: inventory-service
           uri: lb://INVENTORY-SERVICE
           predicates:
             - Path=/api/v1/inventories/**
+
 
 #        - id: user-service
 #          uri: lb://USER-SERVICE
