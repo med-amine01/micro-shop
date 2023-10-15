@@ -1,8 +1,14 @@
 package de.tekup.service;
 
-import de.tekup.dto.InventoryResponse;
+import de.tekup.dto.InventoryRequestDTO;
+import de.tekup.dto.InventoryResponseDTO;
+import de.tekup.entity.Inventory;
+import de.tekup.exception.InventoryNotFoundException;
+import de.tekup.exception.InventoryServiceException;
 import de.tekup.repository.InventoryRepository;
+import de.tekup.util.Mapper;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -11,18 +17,75 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class InventoryService {
     
     private final InventoryRepository inventoryRepository;
     
+
+    public InventoryResponseDTO initQuantityFromQueue(String skuCode) {
+        // Initialize product with qte = 0
+        // Read from RabbitMq when a new product is created and pushed to the queue
+
+        if (inventoryRepository.existsBySkuCode(skuCode)) {
+            throw new InventoryServiceException("Cannot initialize, this product already exists in inventory");
+        }
+        
+        Inventory inventory = new Inventory();
+        inventory.setQuantity(0);
+        inventory.setSkuCode(skuCode);
+        
+        return Mapper.toDto(inventoryRepository.save(inventory));
+    }
+    
+    public List<InventoryResponseDTO> getInventories() throws InventoryServiceException {
+        try {
+            List<Inventory> inventories = inventoryRepository.findAll();
+            
+            return inventories
+                    .stream()
+                    .map(Mapper::toDto)
+                    .toList();
+
+        } catch (Exception exception) {
+            log.error(exception.getMessage());
+            throw new InventoryServiceException("Exception occurred while fetching inventories");
+        }
+    }
+    
     @Transactional(readOnly = true)
-    public List<InventoryResponse> isInStock(List<String> skuCode) {
+    public List<InventoryResponseDTO> isInStock(List<String> skuCode) {
         return inventoryRepository.findBySkuCodeIn(skuCode).stream()
                 .map(inventory ->
-                        InventoryResponse.builder()
+                        InventoryResponseDTO.builder()
                                 .skuCode(inventory.getSkuCode())
+                                .quantity(inventory.getQuantity())
                                 .isInStock(inventory.getQuantity() > 0)
                                 .build()
                 ).toList();
     }
+    
+    
+    public InventoryResponseDTO updateQuantity(InventoryRequestDTO requestDTO) throws InventoryNotFoundException {
+        try {
+            Inventory inventory = inventoryRepository.findBySkuCode(requestDTO.getSkuCode())
+                    .orElseThrow(() -> new InventoryNotFoundException(requestDTO.getSkuCode() + " not found"));
+            
+            if (requestDTO.isIncrease()) {
+                inventory.increaseQte(requestDTO.getQuantity());
+            } else {
+                inventory.decreaseQte(requestDTO.getQuantity());
+            }
+            
+            return Mapper.toDto(inventoryRepository.save(inventory));
+            
+        } catch (InventoryNotFoundException exception) {
+            log.error(exception.getMessage());
+            throw exception;
+        } catch (Exception exception) {
+            log.error("Exception occurred while updating quantity, Exception message: {}", exception.getMessage());
+            throw new InventoryServiceException("Exception occurred while updating quantity");
+        }
+    }
+    
 }

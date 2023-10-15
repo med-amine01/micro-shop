@@ -1,13 +1,13 @@
 package de.tekup.entity;
 
 
-
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.Entity;
 
 @Entity
 @Data
@@ -16,9 +16,15 @@ import javax.persistence.*;
 @EqualsAndHashCode(callSuper = true)
 public class Inventory extends AbstractEntity {
     
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Column(unique=true)
     private String skuCode;
     private Integer quantity;
+    
+    public Integer increaseQte(Integer qte) {
+        return this.quantity += qte;
+    }
+    
+    public Integer decreaseQte(Integer qte) {
+        return this.quantity -= qte;
+    }
 }
