@@ -32,7 +32,7 @@ public class CouponService implements CouponServiceInterface {
             List<Coupon> coupons = couponRepository.findAll();
 
             List<CouponResponseDTO> couponResponseDTOS = coupons.stream()
-                    .map(ValueMapper::convertToDto)
+                    .map(ValueMapper::toDto)
                     .toList();
 
             log.info("CouponService::getCoupons - Fetched {} coupons", couponResponseDTOS.size());
@@ -55,7 +55,7 @@ public class CouponService implements CouponServiceInterface {
             Coupon coupon = couponRepository.findById(id)
                     .orElseThrow(() -> new CouponNotFoundException("Coupon with ID " + id + " not found"));
 
-            CouponResponseDTO couponResponseDTO = ValueMapper.convertToDto(coupon);
+            CouponResponseDTO couponResponseDTO = ValueMapper.toDto(coupon);
 
             log.debug("CouponService::getCouponById - Coupon retrieved by ID: {} {}", id, ValueMapper.jsonToString(couponResponseDTO));
 
@@ -82,7 +82,7 @@ public class CouponService implements CouponServiceInterface {
             Coupon coupon = couponRepository.findByCode(code)
                     .orElseThrow(() -> new CouponNotFoundException("Coupon with code " + code + " not found"));
 
-            CouponResponseDTO couponResponseDTO = ValueMapper.convertToDto(coupon);
+            CouponResponseDTO couponResponseDTO = ValueMapper.toDto(coupon);
 
             log.debug("CouponService::getCouponByCode - Coupon retrieved by code: {} {}", code, ValueMapper.jsonToString(couponResponseDTO));
 
@@ -108,10 +108,10 @@ public class CouponService implements CouponServiceInterface {
                 throw new CouponAlreadyExistsException("Coupon with code " + couponRequestDTO.getCode() + " already exists");
             }
 
-            Coupon coupon = ValueMapper.convertToEntity(couponRequestDTO);
+            Coupon coupon = ValueMapper.toEntity(couponRequestDTO);
             Coupon persistedCoupon = couponRepository.save(coupon);
 
-            CouponResponseDTO couponResponseDTO = ValueMapper.convertToDto(persistedCoupon);
+            CouponResponseDTO couponResponseDTO = ValueMapper.toDto(persistedCoupon);
             log.debug("CouponService::createCoupon - coupon created : {}", ValueMapper.jsonToString(couponResponseDTO));
 
             log.info("CouponService::createCoupon - ENDS.");
@@ -132,7 +132,7 @@ public class CouponService implements CouponServiceInterface {
         try {
             log.info("CouponService::updateCoupon - Started.");
 
-            Coupon coupon = ValueMapper.convertToEntity(updatedCoupon);
+            Coupon coupon = ValueMapper.toEntity(updatedCoupon);
 
             // Fetch the existing coupon and update its properties
             CouponResponseDTO existingCoupon = getCouponById(id);
@@ -141,7 +141,7 @@ public class CouponService implements CouponServiceInterface {
 
             // Update the coupon and convert to response DTO
             Coupon persistedCoupon = couponRepository.save(coupon);
-            CouponResponseDTO couponResponseDTO = ValueMapper.convertToDto(persistedCoupon);
+            CouponResponseDTO couponResponseDTO = ValueMapper.toDto(persistedCoupon);
 
             log.debug("CouponService::updateCoupon - Updated coupon: {}", ValueMapper.jsonToString(couponResponseDTO));
             log.info("CouponService::updateCoupon - Completed for ID: {}", id);

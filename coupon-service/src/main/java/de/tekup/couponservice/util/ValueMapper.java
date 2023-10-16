@@ -16,16 +16,16 @@ public class ValueMapper {
 
     }
 
-    public static Coupon convertToEntity(CouponRequestDTO couponRequestDTO) {
+    public static Coupon toEntity(CouponRequestDTO couponRequestDTO) {
         Coupon coupon = new Coupon();
         coupon.setCode(couponRequestDTO.getCode());
         coupon.setDiscount(couponRequestDTO.getDiscount());
-        coupon.setExpirationDate(couponRequestDTO.getExpirationDate());
+        coupon.setExpirationDate(couponRequestDTO.getExpirationDate() + " 00:00:00");
 
         return coupon;
     }
 
-    public static CouponResponseDTO convertToDto(Coupon coupon) {
+    public static CouponResponseDTO toDto(Coupon coupon) {
         CouponResponseDTO couponResponseDTO = new CouponResponseDTO();
         couponResponseDTO.setId(coupon.getId());
         couponResponseDTO.setCode(coupon.getCode());

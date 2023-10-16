@@ -43,7 +43,7 @@ public class InventoryController {
     @GetMapping("/product/init/{skuCode}")
     public ResponseEntity<APIResponse<InventoryResponseDTO>> initializeProductQuantity
             (
-                @PathVariable @NotBlank @Size(min = 2) String skuCode
+                @PathVariable("skuCode") @NotBlank @Size(min = 2) String skuCode
             ) {
 
         InventoryResponseDTO prodResponseDto = inventoryService.initQuantityFromQueue(skuCode);
@@ -66,13 +66,14 @@ public class InventoryController {
         return inventoryService.isInStock(skuCode);
     }
     
-    @PutMapping("/quantity")
+    @PutMapping("/product/quantity/{skuCode}")
     public ResponseEntity<APIResponse<InventoryResponseDTO>> updateInventoryQuantity
             (
-                    @RequestBody @Valid InventoryRequestDTO requestDTO
+                    @RequestBody @Valid InventoryRequestDTO requestDTO,
+                    @PathVariable("skuCode") @NotBlank @Size(min = 2) String skuCode
             ) throws InventoryNotFoundException {
         
-        InventoryResponseDTO prodResponseDto = inventoryService.updateQuantity(requestDTO);
+        InventoryResponseDTO prodResponseDto = inventoryService.updateQuantity(requestDTO, skuCode);
         
         APIResponse<InventoryResponseDTO> responseDTO = APIResponse
                 .<InventoryResponseDTO>builder()

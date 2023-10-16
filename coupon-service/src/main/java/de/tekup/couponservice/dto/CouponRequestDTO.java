@@ -5,12 +5,8 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Positive;
-import javax.validation.constraints.Size;
+import javax.validation.constraints.*;
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 
 @Data
 @AllArgsConstructor
@@ -27,5 +23,6 @@ public class CouponRequestDTO {
     private BigDecimal discount;
 
     @NotNull(message = "Expiration date is required")
-    private LocalDateTime expirationDate;
+    @Pattern(regexp = "^(0[1-9]|[12][0-9]|3[01])-(0[1-9]|1[0-2])-(\\d{4})$", message = "Expiration date must be in the format dd-MM-yyyy")
+    private String expirationDate;
 }

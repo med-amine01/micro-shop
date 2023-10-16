@@ -4,7 +4,7 @@ import de.tekup.productservice.dto.APIResponse;
 import de.tekup.productservice.dto.ProductRequestDTO;
 import de.tekup.productservice.dto.ProductResponseDTO;
 import de.tekup.productservice.service.ProductServiceInterface;
-import de.tekup.productservice.util.ValueMapper;
+import de.tekup.productservice.util.Mapper;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -32,7 +32,7 @@ public class ProductController {
                 .results(products)
                 .build();
         
-        log.info("ProductController::getAllProducts response {}", ValueMapper.jsonToString(responseDTO));
+        log.info("ProductController::getAllProducts response {}", Mapper.jsonToString(responseDTO));
         return new ResponseEntity<>(responseDTO, HttpStatus.OK);
     }
     
@@ -47,14 +47,14 @@ public class ProductController {
                 .results(productResponseDTO)
                 .build();
         
-        log.info("ProductController::getProductById {} response {}", id, ValueMapper.jsonToString(productResponseDTO));
+        log.info("ProductController::getProductById {} response {}", id, Mapper.jsonToString(productResponseDTO));
         
         return new ResponseEntity<>(responseDTO, HttpStatus.OK);
     }
     
     @PostMapping
     public ResponseEntity<APIResponse<ProductResponseDTO>> createProduct(@RequestBody @Valid ProductRequestDTO productRequestDTO) {
-        log.info("ProductController::createProduct request body {}", ValueMapper.jsonToString(productRequestDTO));
+        log.info("ProductController::createProduct request body {}", Mapper.jsonToString(productRequestDTO));
         
         ProductResponseDTO createdProduct = productServiceInterface.createProduct(productRequestDTO);
         
@@ -64,7 +64,7 @@ public class ProductController {
                 .results(createdProduct)
                 .build();
         
-        log.info("ProductController::createProduct response {}", ValueMapper.jsonToString(responseDTO));
+        log.info("ProductController::createProduct response {}", Mapper.jsonToString(responseDTO));
         return ResponseEntity.status(HttpStatus.CREATED).body(responseDTO);
     }
     
@@ -73,7 +73,7 @@ public class ProductController {
             @PathVariable Long id,
             @Valid @RequestBody ProductRequestDTO productRequestDTO
     ) {
-        log.info("ProductController::updateProduct request body {}", ValueMapper.jsonToString(productRequestDTO));
+        log.info("ProductController::updateProduct request body {}", Mapper.jsonToString(productRequestDTO));
         
         ProductResponseDTO updatedProduct = productServiceInterface.updateProduct(id, productRequestDTO);
         
@@ -83,7 +83,7 @@ public class ProductController {
                 .results(updatedProduct)
                 .build();
         
-        log.info("ProductController::updateProduct response {}", ValueMapper.jsonToString(responseDTO));
+        log.info("ProductController::updateProduct response {}", Mapper.jsonToString(responseDTO));
         return ResponseEntity.ok(responseDTO);
     }
     

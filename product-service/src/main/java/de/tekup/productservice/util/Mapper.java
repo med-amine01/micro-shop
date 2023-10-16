@@ -8,16 +8,17 @@ import de.tekup.productservice.entity.Product;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class ValueMapper {
+public class Mapper {
     
     // this class should not be instantiated
     // All methods are static
-    private ValueMapper() {
+    private Mapper() {
     
     }
     
-    public static Product convertToEntity(ProductRequestDTO productRequestDTO) {
+    public static Product toEntity(ProductRequestDTO productRequestDTO) {
         Product product = new Product();
+        product.setSkuCode(productRequestDTO.getSkuCode());
         product.setName(productRequestDTO.getName());
         product.setDescription(productRequestDTO.getDescription());
         product.setPrice(productRequestDTO.getPrice());
@@ -26,9 +27,10 @@ public class ValueMapper {
         return product;
     }
     
-    public static ProductResponseDTO convertToProductResponseDto(Product product) {
+    public static ProductResponseDTO toDto(Product product) {
         ProductResponseDTO productResponseDTO = new ProductResponseDTO();
         productResponseDTO.setId(product.getId());
+        productResponseDTO.setSkuCode(product.getSkuCode());
         productResponseDTO.setName(product.getName());
         productResponseDTO.setDescription(product.getDescription());
         productResponseDTO.setPrice(product.getPrice());
