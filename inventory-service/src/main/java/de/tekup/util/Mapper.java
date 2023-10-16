@@ -13,7 +13,7 @@ public class Mapper {
     
     }
     
-    public static Inventory toInventory(InventoryRequestDTO request) {
+    public static Inventory toEntity(InventoryRequestDTO request) {
         Inventory inventory = new Inventory();
         inventory.setSkuCode(request.getSkuCode());
         inventory.setQuantity(request.getQuantity());

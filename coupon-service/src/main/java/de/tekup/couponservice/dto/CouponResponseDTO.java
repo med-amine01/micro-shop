@@ -6,7 +6,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 
 
 @Data
@@ -17,7 +16,7 @@ public class CouponResponseDTO {
     private Long id;
     private String code;
     private BigDecimal discount;
-    private LocalDateTime expirationDate;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
+    private String expirationDate;
+    private String createdAt;
+    private String updatedAt;
 }
