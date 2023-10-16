@@ -1,27 +1,27 @@
 package de.tekup.productservice.service.serviceImpl;
 
+import de.tekup.productservice.config.RabbitMqConfig;
 import de.tekup.productservice.config.RestTemplateConfig;
 import de.tekup.productservice.dto.APIResponse;
 import de.tekup.productservice.dto.CouponResponse;
 import de.tekup.productservice.dto.ProductRequestDTO;
 import de.tekup.productservice.dto.ProductResponseDTO;
+import de.tekup.productservice.entity.Product;
 import de.tekup.productservice.exception.MicroserviceInvalidResponseException;
 import de.tekup.productservice.exception.ProductAlreadyExistsException;
 import de.tekup.productservice.exception.ProductNotFoundException;
 import de.tekup.productservice.exception.ProductServiceBusinessException;
 import de.tekup.productservice.repository.ProductRepository;
 import de.tekup.productservice.service.ProductServiceInterface;
-import de.tekup.productservice.util.ValueMapper;
-import de.tekup.productservice.entity.Product;
+import de.tekup.productservice.util.Mapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
-import org.springframework.web.reactive.function.client.WebClient;
 
 import java.util.List;
 
@@ -30,14 +30,16 @@ import java.util.List;
 @Slf4j
 public class ProductService implements ProductServiceInterface {
     
+    @Value("${microservices.coupon-service.uri}")
+    private String COUPON_SERVICE_URL;
+    
     private final ProductRepository productRepository;
     
     private final RestTemplateConfig restTemplate;
     
-    //private final WebClient.Builder webClientBuilder;
+    private final RabbitTemplate rabbitTemplate;
     
-    @Value("${microservices.coupon-service.endpoints.endpoint.uri}")
-    private String COUPON_SERVICE_URL;
+    //private final WebClient.Builder webClientBuilder;
     
     @Override
     public List<ProductResponseDTO> getProducts() throws ProductServiceBusinessException {
@@ -47,7 +49,7 @@ public class ProductService implements ProductServiceInterface {
             List<Product> products = productRepository.findAll();
             
             List<ProductResponseDTO> productResponseDTOS = products.stream()
-                    .map(ValueMapper::convertToProductResponseDto)
+                    .map(Mapper::toDto)
                     .toList();
             
             log.info("ProductService::getProducts - Fetched {} products", productResponseDTOS.size());
@@ -69,9 +71,9 @@ public class ProductService implements ProductServiceInterface {
             Product product = productRepository.findById(id)
                     .orElseThrow(() -> new ProductNotFoundException("Product with ID " + id + " not found"));
             
-            ProductResponseDTO productResponseDTO = ValueMapper.convertToProductResponseDto(product);
+            ProductResponseDTO productResponseDTO = Mapper.toDto(product);
             
-            log.debug("ProductService::getProductById - Product retrieved by ID: {} {}", id, ValueMapper.jsonToString(productResponseDTO));
+            log.debug("ProductService::getProductById - Product retrieved by ID: {} {}", id, Mapper.jsonToString(productResponseDTO));
             
             log.info("ProductService::getProductById - Fetching Ends.");
             return productResponseDTO;
@@ -95,7 +97,7 @@ public class ProductService implements ProductServiceInterface {
                 throw new ProductAlreadyExistsException("Product with name " + productRequestDTO.getName() + " already exists");
             }
 
-            Product product = ValueMapper.convertToEntity(productRequestDTO);
+            Product product = Mapper.toEntity(productRequestDTO);
             
             // Retrieving coupon from coupon-service and map it to APIResponse
             ResponseEntity<APIResponse<CouponResponse>> responseEntity = restTemplate
@@ -115,8 +117,12 @@ public class ProductService implements ProductServiceInterface {
             // Saving product
             Product persistedProduct = productRepository.save(product);
             
-            ProductResponseDTO productResponseDTO = ValueMapper.convertToProductResponseDto(persistedProduct);
-            log.debug("ProductService::createProduct - product created : {}", ValueMapper.jsonToString(productResponseDTO));
+            ProductResponseDTO productResponseDTO = Mapper.toDto(persistedProduct);
+            log.debug("ProductService::createProduct - product created : {}", Mapper.jsonToString(productResponseDTO));
+            
+            // Sending to rabbitMq
+            rabbitTemplate.convertAndSend(RabbitMqConfig.EXCHANGE, RabbitMqConfig.ROUTING_KEY, productResponseDTO);
+            log.info("ProductService::createProduct - product sent to QUEUE");
             
             log.info("ProductService::createProduct - ENDS.");
             return productResponseDTO;
@@ -140,7 +146,7 @@ public class ProductService implements ProductServiceInterface {
         try {
             log.info("ProductService::updateProduct - Started.");
             
-            Product product = ValueMapper.convertToEntity(updatedProduct);
+            Product product = Mapper.toEntity(updatedProduct);
             
             // Fetch the existing product and update its properties
             ProductResponseDTO existingProduct = getProductById(id);
@@ -149,10 +155,9 @@ public class ProductService implements ProductServiceInterface {
             
             // Update the product and convert to response DTO
             Product persistedProduct = productRepository.save(product);
-            ProductResponseDTO productResponseDTO = ValueMapper.convertToProductResponseDto(persistedProduct);
-
+            ProductResponseDTO productResponseDTO = Mapper.toDto(persistedProduct);
             
-            log.debug("ProductService::updateProduct - Updated product: {}", ValueMapper.jsonToString(productResponseDTO));
+            log.debug("ProductService::updateProduct - Updated product: {}", Mapper.jsonToString(productResponseDTO));
             log.info("ProductService::updateProduct - Completed for ID: {}", id);
             
             return productResponseDTO;

@@ -3,3 +3,8 @@ spring:
     name: product-service
   profiles:
     active: dev
+
+rabbitmq:
+  queue: ${broker.product.queue}
+  exchange: ${broker.product.exchange}
+  routing-key: ${broker.product.routing-key}

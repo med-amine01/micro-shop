@@ -1,4 +1,4 @@
-package de.tekup.productservice.dto;
+package de.tekup.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
@@ -11,7 +11,7 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 @NoArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class ProductResponseDTO {
+public class ProductDTO {
     private Long id;
     private String skuCode;
     private String name;
