@@ -3,7 +3,6 @@ package de.tekup.controller;
 import de.tekup.dto.APIResponse;
 import de.tekup.dto.InventoryRequestDTO;
 import de.tekup.dto.InventoryResponseDTO;
-import de.tekup.exception.InventoryNotFoundException;
 import de.tekup.service.InventoryService;
 import de.tekup.util.Mapper;
 import lombok.RequiredArgsConstructor;
@@ -59,7 +58,8 @@ public class InventoryController {
     }
     
 
-    // http://localhost:8082/api/inventories/check?skuCode=iphone-13&skuCode=iphone13-red
+    // http://inventory-service/api/inventories/product/check?skuCode=iphone-13&skuCode=iphone13-red
+    // http://inventory-service/api/v1/inventories/product/check?skuCode=iphone_13,iphone_13_red
     @GetMapping("/product/check")
     @ResponseStatus(HttpStatus.OK)
     public List<InventoryResponseDTO> isInStock(@RequestParam List<String> skuCode) {
@@ -71,7 +71,7 @@ public class InventoryController {
             (
                     @RequestBody @Valid InventoryRequestDTO requestDTO,
                     @PathVariable("skuCode") @NotBlank @Size(min = 2) String skuCode
-            ) throws InventoryNotFoundException 
+            ) throws Exception
     {
         
         InventoryResponseDTO prodResponseDto = inventoryService.updateQuantity(requestDTO, skuCode);
