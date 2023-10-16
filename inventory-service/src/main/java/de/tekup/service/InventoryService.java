@@ -65,7 +65,7 @@ public class InventoryService {
                 ).toList();
     }
     
-    
+
     public InventoryResponseDTO updateQuantity(InventoryRequestDTO requestDTO, String skuCode) throws InventoryNotFoundException {
         try {
             Inventory inventory = inventoryRepository.findBySkuCode(skuCode)

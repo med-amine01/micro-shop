@@ -71,7 +71,8 @@ public class InventoryController {
             (
                     @RequestBody @Valid InventoryRequestDTO requestDTO,
                     @PathVariable("skuCode") @NotBlank @Size(min = 2) String skuCode
-            ) throws InventoryNotFoundException {
+            ) throws InventoryNotFoundException 
+    {
         
         InventoryResponseDTO prodResponseDto = inventoryService.updateQuantity(requestDTO, skuCode);
         
