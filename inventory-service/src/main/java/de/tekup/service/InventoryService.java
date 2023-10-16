@@ -3,6 +3,7 @@ package de.tekup.service;
 import de.tekup.dto.InventoryRequestDTO;
 import de.tekup.dto.InventoryResponseDTO;
 import de.tekup.entity.Inventory;
+import de.tekup.exception.InventoryNotEnoughQuantity;
 import de.tekup.exception.InventoryNotFoundException;
 import de.tekup.exception.InventoryServiceException;
 import de.tekup.repository.InventoryRepository;
@@ -65,7 +66,7 @@ public class InventoryService {
     }
     
 
-    public InventoryResponseDTO updateQuantity(InventoryRequestDTO requestDTO, String skuCode) throws InventoryNotFoundException {
+    public InventoryResponseDTO updateQuantity(InventoryRequestDTO requestDTO, String skuCode) throws Exception {
         try {
             Inventory inventory = inventoryRepository.findBySkuCode(skuCode)
                     .orElseThrow(() -> new InventoryNotFoundException(skuCode + " not found"));
@@ -73,18 +74,29 @@ public class InventoryService {
             if (requestDTO.isIncrease()) {
                 inventory.increaseQte(requestDTO.getQuantity());
             } else {
+                if (!isDiffQtePositive(requestDTO.getQuantity(), inventory.getQuantity())) {
+                    throw new InventoryNotEnoughQuantity("Not enough quantity in inventory");
+                }
                 inventory.decreaseQte(requestDTO.getQuantity());
             }
             
             return Mapper.toDto(inventoryRepository.save(inventory));
             
-        } catch (InventoryNotFoundException exception) {
+        }
+        catch (InventoryNotEnoughQuantity | InventoryNotFoundException exception) {
             log.error(exception.getMessage());
             throw exception;
-        } catch (Exception exception) {
+        }
+        catch (Exception exception) {
             log.error("Exception occurred while updating quantity, Exception message: {}", exception.getMessage());
             throw new InventoryServiceException("Exception occurred while updating quantity");
         }
+    }
+    
+    private static boolean isDiffQtePositive(int requestedQte, int inventoryQte) {
+        int diffQte = inventoryQte - requestedQte;
+
+        return diffQte >= 0;
     }
     
 }
