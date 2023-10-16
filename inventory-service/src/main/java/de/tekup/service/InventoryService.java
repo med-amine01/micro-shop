@@ -65,11 +65,11 @@ public class InventoryService {
                 ).toList();
     }
     
-    
-    public InventoryResponseDTO updateQuantity(InventoryRequestDTO requestDTO) throws InventoryNotFoundException {
+
+    public InventoryResponseDTO updateQuantity(InventoryRequestDTO requestDTO, String skuCode) throws InventoryNotFoundException {
         try {
-            Inventory inventory = inventoryRepository.findBySkuCode(requestDTO.getSkuCode())
-                    .orElseThrow(() -> new InventoryNotFoundException(requestDTO.getSkuCode() + " not found"));
+            Inventory inventory = inventoryRepository.findBySkuCode(skuCode)
+                    .orElseThrow(() -> new InventoryNotFoundException(skuCode + " not found"));
             
             if (requestDTO.isIncrease()) {
                 inventory.increaseQte(requestDTO.getQuantity());

@@ -16,10 +16,6 @@ import javax.validation.constraints.Size;
 @EqualsAndHashCode
 public class InventoryRequestDTO {
     
-    @NotBlank(message = "SkuCode code is required")
-    @Size(min = 2, message = "SkuCode should have at least 2 characters")
-    private String skuCode;
-    
     @Positive(message = "Quantity must be positive")
     private Integer quantity;
     

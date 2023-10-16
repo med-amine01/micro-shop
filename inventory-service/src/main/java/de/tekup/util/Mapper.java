@@ -13,11 +13,11 @@ public class Mapper {
     
     }
     
-    public static Inventory toEntity(InventoryRequestDTO request) {
+    public static Inventory toEntity(InventoryRequestDTO request, String skuCode) {
         Inventory inventory = new Inventory();
-        inventory.setSkuCode(request.getSkuCode());
+        inventory.setSkuCode(skuCode);
         inventory.setQuantity(request.getQuantity());
-        
+  
         return inventory;
     }
     
@@ -26,6 +26,8 @@ public class Mapper {
         responseDTO.setSkuCode(inventory.getSkuCode());
         responseDTO.setQuantity(inventory.getQuantity());
         responseDTO.setInStock(inventory.getQuantity() > 0);
+        responseDTO.setCreatedAt(inventory.getCreatedAt());
+        responseDTO.setUpdatedAt(inventory.getUpdatedAt());
 
         return responseDTO;
     }

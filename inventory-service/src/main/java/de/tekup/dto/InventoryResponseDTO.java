@@ -13,4 +13,6 @@ public class InventoryResponseDTO {
     private String skuCode;
     private Integer quantity;
     private boolean isInStock;
+    private String createdAt;
+    private String updatedAt;
 }
