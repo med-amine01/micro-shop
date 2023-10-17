@@ -3,7 +3,7 @@ package de.tekup.handler;
 import de.tekup.dto.APIResponse;
 import de.tekup.dto.ErrorDTO;
 import de.tekup.exception.InventoryAlreadyExistsException;
-import de.tekup.exception.InventoryNotEnoughQuantity;
+import de.tekup.exception.InventoryNotEnoughQuantityException;
 import de.tekup.exception.InventoryNotFoundException;
 import de.tekup.exception.InventoryServiceException;
 import org.springframework.http.HttpStatus;
@@ -37,8 +37,8 @@ public class InventoryServiceExceptionHandler {
         return serviceResponse;
     }
     
-    @ExceptionHandler(InventoryNotEnoughQuantity.class)
-    public APIResponse<?> handleServiceException(InventoryNotEnoughQuantity exception) {
+    @ExceptionHandler(InventoryNotEnoughQuantityException.class)
+    public APIResponse<?> handleServiceException(InventoryNotEnoughQuantityException exception) {
         return getServiceResponse(exception);
     }
     

@@ -3,7 +3,7 @@ package de.tekup.service;
 import de.tekup.dto.InventoryRequestDTO;
 import de.tekup.dto.InventoryResponseDTO;
 import de.tekup.entity.Inventory;
-import de.tekup.exception.InventoryNotEnoughQuantity;
+import de.tekup.exception.InventoryNotEnoughQuantityException;
 import de.tekup.exception.InventoryNotFoundException;
 import de.tekup.exception.InventoryServiceException;
 import de.tekup.repository.InventoryRepository;
@@ -75,7 +75,7 @@ public class InventoryService {
                 inventory.increaseQte(requestDTO.getQuantity());
             } else {
                 if (!isDiffQtePositive(requestDTO.getQuantity(), inventory.getQuantity())) {
-                    throw new InventoryNotEnoughQuantity("Not enough quantity in inventory");
+                    throw new InventoryNotEnoughQuantityException("Not enough quantity in inventory");
                 }
                 inventory.decreaseQte(requestDTO.getQuantity());
             }
@@ -83,7 +83,7 @@ public class InventoryService {
             return Mapper.toDto(inventoryRepository.save(inventory));
             
         }
-        catch (InventoryNotEnoughQuantity | InventoryNotFoundException exception) {
+        catch (InventoryNotEnoughQuantityException | InventoryNotFoundException exception) {
             log.error(exception.getMessage());
             throw exception;
         }
