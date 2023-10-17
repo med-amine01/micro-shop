@@ -25,7 +25,7 @@ public class OrderService {
     
     private final WebClient.Builder webClientBuilder;
     
-    @Value("${microservices.inventory-service.endpoints.endpoint.uri}")
+    @Value("${microservices.inventory-service.uri}")
     private String INVENTORY_SERVICE_URL;
     
     public void placeOrder(OrderRequest orderRequest) {
@@ -45,14 +45,14 @@ public class OrderService {
         
         // Call Inventory Service, and place order if product is in
         // stock
-        InventoryResponse[] inventoryResponsArray = webClientBuilder.build().get()
+        InventoryResponse[] inventoryResponseArray = webClientBuilder.build().get()
                 .uri(INVENTORY_SERVICE_URL + "/product/check",
                         uriBuilder -> uriBuilder.queryParam("skuCode", skuCodes).build())
                 .retrieve()
                 .bodyToMono(InventoryResponse[].class)
                 .block();
         
-        boolean allProductsInStock = Arrays.stream(inventoryResponsArray)
+        boolean allProductsInStock = Arrays.stream(inventoryResponseArray)
                 .allMatch(InventoryResponse::isInStock);
         
         if (!allProductsInStock) {
