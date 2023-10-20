@@ -12,7 +12,7 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 @NoArgsConstructor
 @EqualsAndHashCode
-public class ProductRequestDTO {
+public class ProductRequest {
     
     @NotBlank(message = "skuCode is required")
     @Pattern(regexp = "^[A-Za-z0-9_-]{2,20}$", message = "SkuCode must consist min of 2 chars, can only contain letters, numbers, underscores, and hyphens.")

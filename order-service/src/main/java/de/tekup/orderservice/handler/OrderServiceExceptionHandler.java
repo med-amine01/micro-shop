@@ -1,11 +1,9 @@
-package de.tekup.handler;
+package de.tekup.orderservice.handler;
 
-import de.tekup.dto.APIResponse;
-import de.tekup.dto.ErrorDTO;
-import de.tekup.exception.InventoryAlreadyExistsException;
-import de.tekup.exception.InventoryOutOfStockException;
-import de.tekup.exception.InventoryNotFoundException;
-import de.tekup.exception.InventoryServiceException;
+
+import de.tekup.orderservice.dto.APIResponse;
+import de.tekup.orderservice.dto.ErrorDTO;
+import de.tekup.orderservice.exception.OrderServiceException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -17,7 +15,7 @@ import java.util.Collections;
 import java.util.List;
 
 @RestControllerAdvice
-public class InventoryServiceExceptionHandler {
+public class OrderServiceExceptionHandler {
 
     private static final String FAILED = "FAILED";
 
@@ -37,25 +35,9 @@ public class InventoryServiceExceptionHandler {
         return serviceResponse;
     }
     
-    @ExceptionHandler(InventoryOutOfStockException.class)
-    public APIResponse<?> handleServiceException(InventoryOutOfStockException exception) {
-        return getServiceResponse(exception);
-    }
     
-    @ExceptionHandler(InventoryAlreadyExistsException.class)
-    public APIResponse<?> handleServiceException(InventoryAlreadyExistsException exception) {
-        return getServiceResponse(exception);
-    }
-    
-    
-    @ExceptionHandler(InventoryNotFoundException.class)
-    public APIResponse<?> handleCouponAlreadyExistsException(InventoryNotFoundException exception) {
-        return getServiceResponse(exception);
-    }
-    
-    
-    @ExceptionHandler(InventoryServiceException.class)
-    public APIResponse<?> handleCouponNotFoundException(InventoryServiceException exception) {
+    @ExceptionHandler(OrderServiceException.class)
+    public APIResponse<?> handleCouponNotFoundException(OrderServiceException exception) {
         return getServiceResponse(exception);
     }
     

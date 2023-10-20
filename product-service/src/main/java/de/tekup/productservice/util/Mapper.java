@@ -2,8 +2,8 @@ package de.tekup.productservice.util;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import de.tekup.productservice.dto.ProductRequestDTO;
-import de.tekup.productservice.dto.ProductResponseDTO;
+import de.tekup.productservice.dto.ProductRequest;
+import de.tekup.productservice.dto.ProductResponse;
 import de.tekup.productservice.entity.Product;
 import lombok.extern.slf4j.Slf4j;
 
@@ -16,29 +16,28 @@ public class Mapper {
     
     }
     
-    public static Product toEntity(ProductRequestDTO productRequestDTO) {
+    public static Product toEntity(ProductRequest productRequest) {
         Product product = new Product();
-        product.setSkuCode(productRequestDTO.getSkuCode());
-        product.setName(productRequestDTO.getName());
-        product.setDescription(productRequestDTO.getDescription());
-        product.setPrice(productRequestDTO.getPrice());
-        product.setCouponCode(productRequestDTO.getCouponCode());
+        product.setSkuCode(productRequest.getSkuCode());
+        product.setName(productRequest.getName());
+        product.setDescription(productRequest.getDescription());
+        product.setPrice(productRequest.getPrice());
+        product.setCouponCode(productRequest.getCouponCode());
         
         return product;
     }
     
-    public static ProductResponseDTO toDto(Product product) {
-        ProductResponseDTO productResponseDTO = new ProductResponseDTO();
-        productResponseDTO.setId(product.getId());
-        productResponseDTO.setSkuCode(product.getSkuCode());
-        productResponseDTO.setName(product.getName());
-        productResponseDTO.setDescription(product.getDescription());
-        productResponseDTO.setPrice(product.getPrice());
-        productResponseDTO.setCouponCode(product.getCouponCode());
-        productResponseDTO.setCreatedAt(product.getCreatedAt());
-        productResponseDTO.setUpdatedAt(product.getUpdatedAt());
+    public static ProductResponse toDto(Product product) {
+        ProductResponse productResponse = new ProductResponse();
+        productResponse.setSkuCode(product.getSkuCode());
+        productResponse.setName(product.getName());
+        productResponse.setDescription(product.getDescription());
+        productResponse.setPrice(product.getPrice());
+        productResponse.setCouponCode(product.getCouponCode());
+        productResponse.setCreatedAt(product.getCreatedAt());
+        productResponse.setUpdatedAt(product.getUpdatedAt());
         
-        return productResponseDTO;
+        return productResponse;
     }
     
     public static String jsonToString(Object object) {

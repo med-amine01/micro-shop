@@ -3,8 +3,9 @@ package de.tekup.service;
 import de.tekup.dto.InventoryRequestDTO;
 import de.tekup.dto.InventoryResponseDTO;
 import de.tekup.entity.Inventory;
-import de.tekup.exception.InventoryNotEnoughQuantityException;
+import de.tekup.exception.InventoryAlreadyExistsException;
 import de.tekup.exception.InventoryNotFoundException;
+import de.tekup.exception.InventoryOutOfStockException;
 import de.tekup.exception.InventoryServiceException;
 import de.tekup.repository.InventoryRepository;
 import de.tekup.util.Mapper;
@@ -24,22 +25,30 @@ public class InventoryService {
     private final InventoryRepository inventoryRepository;
     
 
-    public InventoryResponseDTO initQuantityFromQueue(String skuCode) {
-        // Initialize product with qte = 0
-        // Read from RabbitMq when a new product is created and pushed to the queue
+    public InventoryResponseDTO initQuantityFromQueue(String skuCode) throws Exception
+    {
+        try {
+            // Initialize product with qte = 0
+            // Read from RabbitMq when a new product is created and pushed to the queue
+            
+            if (inventoryRepository.existsBySkuCode(skuCode)) {
+                throw new InventoryAlreadyExistsException("Cannot initialize, this product already exists in inventory");
+            }
+            
+            Inventory inventory = new Inventory();
+            inventory.setQuantity(0);
+            inventory.setSkuCode(skuCode);
+            
+            return Mapper.toDto(inventoryRepository.save(inventory));
 
-        if (inventoryRepository.existsBySkuCode(skuCode)) {
-            throw new InventoryServiceException("Cannot initialize, this product already exists in inventory");
+        } catch (InventoryAlreadyExistsException exception) {
+            log.error("Exception occurred while initializing product, Exception message: {}", exception.getMessage());
+            throw new InventoryAlreadyExistsException();
         }
-        
-        Inventory inventory = new Inventory();
-        inventory.setQuantity(0);
-        inventory.setSkuCode(skuCode);
-        
-        return Mapper.toDto(inventoryRepository.save(inventory));
     }
     
-    public List<InventoryResponseDTO> getInventories() throws InventoryServiceException {
+    public List<InventoryResponseDTO> getInventories() throws InventoryServiceException
+    {
         try {
             List<Inventory> inventories = inventoryRepository.findAll();
             
@@ -55,18 +64,21 @@ public class InventoryService {
     }
     
     @Transactional(readOnly = true)
-    public List<InventoryResponseDTO> isInStock(List<String> skuCode) {
+    public List<InventoryResponseDTO> isInStock(List<String> skuCode)
+    {
         return inventoryRepository.findBySkuCodeIn(skuCode).stream()
                 .map(inventory ->
                         InventoryResponseDTO.builder()
                                 .skuCode(inventory.getSkuCode())
                                 .isInStock(inventory.getQuantity() > 0)
+                                .quantity(inventory.getQuantity())
                                 .build()
                 ).toList();
     }
     
 
-    public InventoryResponseDTO updateQuantity(InventoryRequestDTO requestDTO, String skuCode) throws Exception {
+    public InventoryResponseDTO updateQuantity(InventoryRequestDTO requestDTO, String skuCode) throws Exception
+    {
         try {
             Inventory inventory = inventoryRepository.findBySkuCode(skuCode)
                     .orElseThrow(() -> new InventoryNotFoundException(skuCode + " not found"));
@@ -75,7 +87,7 @@ public class InventoryService {
                 inventory.increaseQte(requestDTO.getQuantity());
             } else {
                 if (!isDiffQtePositive(requestDTO.getQuantity(), inventory.getQuantity())) {
-                    throw new InventoryNotEnoughQuantityException("Not enough quantity in inventory");
+                    throw new InventoryOutOfStockException("Not enough quantity in inventory");
                 }
                 inventory.decreaseQte(requestDTO.getQuantity());
             }
@@ -83,7 +95,7 @@ public class InventoryService {
             return Mapper.toDto(inventoryRepository.save(inventory));
             
         }
-        catch (InventoryNotEnoughQuantityException | InventoryNotFoundException exception) {
+        catch (InventoryOutOfStockException | InventoryNotFoundException exception) {
             log.error(exception.getMessage());
             throw exception;
         }
@@ -93,7 +105,8 @@ public class InventoryService {
         }
     }
     
-    private static boolean isDiffQtePositive(int requestedQte, int inventoryQte) {
+    private static boolean isDiffQtePositive(int requestedQte, int inventoryQte)
+    {
         int diffQte = inventoryQte - requestedQte;
 
         return diffQte >= 0;

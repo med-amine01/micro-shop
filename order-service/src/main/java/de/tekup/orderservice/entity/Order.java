@@ -16,6 +16,7 @@ import java.util.List;
 public class Order extends AbstractEntity {
     
     private String orderNumber;
+    private float totalPrice;
     
     @OneToMany(cascade = CascadeType.ALL)
     private List<OrderLineItems> orderLineItemsList;

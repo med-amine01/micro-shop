@@ -2,7 +2,7 @@ package de.tekup.productservice.handler;
 
 import de.tekup.productservice.dto.APIResponse;
 import de.tekup.productservice.dto.ErrorDTO;
-import de.tekup.productservice.exception.MicroserviceInvalidResponseException;
+import de.tekup.productservice.exception.InvalidResponseException;
 import de.tekup.productservice.exception.ProductAlreadyExistsException;
 import de.tekup.productservice.exception.ProductNotFoundException;
 import de.tekup.productservice.exception.ProductServiceBusinessException;
@@ -70,8 +70,8 @@ public class ProductServiceExceptionHandler {
     }
     
     // Business Product service exception handler
-    @ExceptionHandler(MicroserviceInvalidResponseException.class)
-    public APIResponse<?> handleMicroserviceInvalidResponseException(MicroserviceInvalidResponseException exception) {
+    @ExceptionHandler(InvalidResponseException.class)
+    public APIResponse<?> handleMicroserviceInvalidResponseException(InvalidResponseException exception) {
         APIResponse<?> serviceResponse = new APIResponse<>();
         serviceResponse.setStatus(FAILED);
         serviceResponse.setErrors(Collections.singletonList(new ErrorDTO("", exception.getMessage())));

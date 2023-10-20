@@ -14,6 +14,7 @@ import java.math.BigDecimal;
 public class OrderLineItems extends AbstractEntity {
     
     private String skuCode;
-    private BigDecimal price;
+    private Float unitePrice;
     private Integer quantity;
+    private Float price;
 }

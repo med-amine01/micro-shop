@@ -17,7 +17,8 @@ public class RabbitMqListener {
     private final InventoryService inventoryService;
     
     @RabbitListener(queues = QUEUE)
-    public void productListener(ProductDTO product) {
+    public void productListener(ProductDTO product) throws Exception
+    {
         inventoryService.initQuantityFromQueue(product.getSkuCode());
         log.info("product fetched from message queue and saved in inventory");
     }
