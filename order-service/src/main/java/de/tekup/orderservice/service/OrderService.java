@@ -79,11 +79,11 @@ public class OrderService {
                 throw new OrderServiceException("couldn't fetch requested product");
             }
             // Setting unit price
-            Float unitePrice = Mapper.formatFloatDecimal(productResponse.getPrice());
+            float unitePrice = Mapper.formatFloatDecimal(productResponse.getPrice());
             orderLineItem.setUnitePrice(unitePrice);
             
             // Setting total price of a single item
-            Float totalSingleItem = Mapper.formatFloatDecimal(unitePrice * item.getQuantity());
+            float totalSingleItem = Mapper.formatFloatDecimal(unitePrice * item.getQuantity());
             orderLineItem.setPrice(totalSingleItem);
             
             // Adding item to orderItems
@@ -140,41 +140,5 @@ public class OrderService {
             throw new OrderServiceException("Error checking product stock " + exception.getMessage());
         }
     }
-    
-    /*
-    public void placeOrder(OrderRequest orderRequest) {
-        Order order = new Order();
-        order.setOrderNumber(UUID.randomUUID().toString());
-        
-        List<OrderLineItems> orderLineItems = orderRequest.getOrderLineItemsRequestList()
-                .stream()
-                .map(this::mapToDto)
-                .toList();
-        
-        order.setOrderLineItemsList(orderLineItems);
-        
-        List<String> skuCodes = order.getOrderLineItemsList().stream()
-                .map(OrderLineItems::getSkuCode)
-                .toList();
-        
-        // Call Inventory Service, and place order if product is in
-        // stock
-        InventoryResponse[] inventoryResponseArray = webClientBuilder.build().get()
-                .uri(INVENTORY_SERVICE_URL + "/product/check",
-                        uriBuilder -> uriBuilder.queryParam("skuCode", skuCodes).build())
-                .retrieve()
-                .bodyToMono(InventoryResponse[].class)
-                .block();
-        
-        boolean allProductsInStock = Arrays.stream(inventoryResponseArray)
-                .allMatch(InventoryResponse::isInStock);
-        
-        if (!allProductsInStock) {
-            throw new IllegalArgumentException("Product is not in stock, please try again later");
-        }
-        
-        orderRepository.save(order);
-    }
-    */
     
 }

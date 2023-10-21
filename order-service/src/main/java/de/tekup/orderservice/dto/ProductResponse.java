@@ -11,7 +11,7 @@ public class ProductResponse {
     private String skuCode;
     private String name;
     private String description;
-    private Float price;
+    private float price;
     private String couponCode;
     private String createdAt;
     private String updatedAt;

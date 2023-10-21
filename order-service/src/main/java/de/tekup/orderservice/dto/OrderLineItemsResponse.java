@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class OrderLineItemsResponse {
     private String skuCode;
-    private Float unitePrice;
+    private float unitePrice;
     private Integer quantity;
-    private Float price;
+    private float price;
 }

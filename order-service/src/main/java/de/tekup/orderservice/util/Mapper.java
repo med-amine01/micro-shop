@@ -58,10 +58,11 @@ public class Mapper {
         return orderResponse;
     }
     
-    public static Float formatFloatDecimal(Float value)
+    public static float formatFloatDecimal(float value)
     {
         DecimalFormat decimalFormat = new DecimalFormat("0.00");
-        return Float.valueOf(decimalFormat.format(value));
+        
+        return Float.parseFloat(decimalFormat.format(value));
     }
     
     public static String jsonToString(Object object) {
