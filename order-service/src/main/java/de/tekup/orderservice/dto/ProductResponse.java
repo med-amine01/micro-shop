@@ -12,7 +12,6 @@ public class ProductResponse {
     private String name;
     private String description;
     private float price;
-    private String couponCode;
     private String createdAt;
     private String updatedAt;
 }

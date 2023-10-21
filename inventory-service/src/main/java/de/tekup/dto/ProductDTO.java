@@ -12,7 +12,6 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ProductDTO {
-    private Long id;
     private String skuCode;
     private String name;
     private String description;

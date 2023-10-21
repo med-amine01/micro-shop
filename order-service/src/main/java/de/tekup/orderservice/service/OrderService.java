@@ -7,6 +7,8 @@ import de.tekup.orderservice.util.Mapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -14,6 +16,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -50,6 +53,7 @@ public class OrderService {
         
         // Setting up order response
         OrderResponse orderResponse = new OrderResponse();
+        orderResponse.setOrderNumber(UUID.randomUUID().toString());
         orderResponse.setItems(orderItems);
         orderResponse.setTotalPrice(totalPrice);
         
@@ -62,22 +66,25 @@ public class OrderService {
     private float getTotalPrice(OrderLineItemsRequest item, List<OrderLineItemsResponse> orderItems, float totalPrice) {
         try {
             // Call the product service and get product info (unit price)
-            ProductResponse productResponse = webClientBuilder
+            ResponseEntity<APIResponse<ProductResponse>> responseEntity = webClientBuilder
                     .build()
                     .get()
                     .uri(PRODUCT_SERVICE_URL + "/skuCode/" + item.getSkuCode())
                     .retrieve()
-                    .bodyToMono(ProductResponse.class)
+                    .toEntity(new ParameterizedTypeReference<APIResponse<ProductResponse>>() {})
                     .block(); // Blocking to get the response
+            
+            ProductResponse productResponse = Mapper.getApiResponseData(responseEntity);
+            
+            if (null == productResponse) {
+                throw new OrderServiceException("couldn't fetch requested product");
+            }
             
             // Product is in stock, create the order line item
             OrderLineItemsResponse orderLineItem = new OrderLineItemsResponse();
             orderLineItem.setSkuCode(item.getSkuCode());
             orderLineItem.setQuantity(item.getQuantity());
             
-            if (null == productResponse) {
-                throw new OrderServiceException("couldn't fetch requested product");
-            }
             // Setting unit price
             float unitePrice = Mapper.formatFloatDecimal(productResponse.getPrice());
             orderLineItem.setUnitePrice(unitePrice);
@@ -131,7 +138,7 @@ public class OrderService {
                                             }
                                         }
                                     } else {
-                                        throw new OrderServiceException(inventoryResponse.getSkuCode() + " not in stock");
+                                        throw new OrderServiceException(inventoryResponse.getSkuCode() + " out of stock");
                                     }
                                 });
                     });
@@ -140,5 +147,6 @@ public class OrderService {
             throw new OrderServiceException("Error checking product stock " + exception.getMessage());
         }
     }
+    
     
 }

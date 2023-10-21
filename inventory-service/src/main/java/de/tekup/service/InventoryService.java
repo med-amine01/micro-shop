@@ -44,6 +44,9 @@ public class InventoryService {
         } catch (InventoryAlreadyExistsException exception) {
             log.error("Exception occurred while initializing product, Exception message: {}", exception.getMessage());
             throw new InventoryAlreadyExistsException();
+        } catch (Exception exception) {
+            log.error("Exception occurred while fetching product from queue, Exception message: {}",exception.getMessage());
+            throw new InventoryServiceException(exception.getMessage());
         }
     }
     

@@ -2,16 +2,18 @@ package de.tekup.orderservice.util;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import de.tekup.orderservice.dto.APIResponse;
 import de.tekup.orderservice.dto.OrderLineItemsResponse;
 import de.tekup.orderservice.dto.OrderResponse;
 import de.tekup.orderservice.entity.Order;
 import de.tekup.orderservice.entity.OrderLineItems;
+import de.tekup.orderservice.exception.InvalidResponseException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 @Slf4j
 public class Mapper {
@@ -24,7 +26,7 @@ public class Mapper {
     
     public static Order toEntity(OrderResponse orderResponse) {
         Order order = new Order();
-        order.setOrderNumber(UUID.randomUUID().toString());
+        order.setOrderNumber(orderResponse.getOrderNumber());
         // Setting converting order line dto to order line entity
         List<OrderLineItems> orderLineItemsList = new ArrayList<>();
         orderResponse.getItems().forEach(itemsResponse -> {
@@ -73,5 +75,20 @@ public class Mapper {
         }
         return null;
     }
+    
+    
+    public static <T> T getApiResponseData(ResponseEntity<APIResponse<T>> responseEntity) {
+        APIResponse<T> apiResponse = responseEntity.getBody();
+        
+        if (apiResponse != null && "FAILED".equals(apiResponse.getStatus())) {
+            String errorDetails = apiResponse.getErrors().isEmpty()
+                    ? "Unknown error occurred."
+                    : apiResponse.getErrors().get(0).getErrorMessage();
+            throw new InvalidResponseException(errorDetails);
+        }
+        
+        return apiResponse != null ? apiResponse.getResults() : null;
+    }
+    
 }
 
