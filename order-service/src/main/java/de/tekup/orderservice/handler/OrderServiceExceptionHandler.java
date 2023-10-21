@@ -3,6 +3,7 @@ package de.tekup.orderservice.handler;
 
 import de.tekup.orderservice.dto.APIResponse;
 import de.tekup.orderservice.dto.ErrorDTO;
+import de.tekup.orderservice.exception.InvalidResponseException;
 import de.tekup.orderservice.exception.OrderServiceException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -35,6 +36,10 @@ public class OrderServiceExceptionHandler {
         return serviceResponse;
     }
     
+    @ExceptionHandler(InvalidResponseException.class)
+    public APIResponse<?> handleCouponNotFoundException(InvalidResponseException exception) {
+        return getServiceResponse(exception);
+    }
     
     @ExceptionHandler(OrderServiceException.class)
     public APIResponse<?> handleCouponNotFoundException(OrderServiceException exception) {

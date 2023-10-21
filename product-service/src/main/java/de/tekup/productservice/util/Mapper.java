@@ -2,10 +2,13 @@ package de.tekup.productservice.util;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import de.tekup.productservice.dto.APIResponse;
 import de.tekup.productservice.dto.ProductRequest;
 import de.tekup.productservice.dto.ProductResponse;
 import de.tekup.productservice.entity.Product;
+import de.tekup.productservice.exception.InvalidResponseException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
 
 @Slf4j
 public class Mapper {
@@ -48,4 +51,17 @@ public class Mapper {
         }
         return null;
     }
+    public static <T> T getApiResponseData(ResponseEntity<APIResponse<T>> responseEntity) {
+        APIResponse<T> apiResponse = responseEntity.getBody();
+        
+        if (apiResponse != null && "FAILED".equals(apiResponse.getStatus())) {
+            String errorDetails = apiResponse.getErrors().isEmpty()
+                    ? "Unknown error occurred."
+                    : apiResponse.getErrors().get(0).getErrorMessage();
+            throw new InvalidResponseException(errorDetails);
+        }
+        
+        return apiResponse != null ? apiResponse.getResults() : null;
+    }
+    
 }

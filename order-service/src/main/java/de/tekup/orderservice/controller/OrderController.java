@@ -23,13 +23,6 @@ public class OrderController {
     
     private final OrderService orderService;
     
-//    @PostMapping
-//    @ResponseStatus(HttpStatus.CREATED)
-//    public String placeOrder(@RequestBody OrderRequest orderRequest) {
-//        orderService.placeOrder(orderRequest);
-//        return "Order Placed Successfully";
-//    }
-    
     @PostMapping
     public ResponseEntity<APIResponse<OrderResponse>> createProduct(@RequestBody @Valid OrderRequest orderRequest) {
         APIResponse<OrderResponse> responseDTO = APIResponse

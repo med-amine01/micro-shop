@@ -134,7 +134,7 @@ public class ProductService implements ProductServiceInterface {
                     });
             
             //Getting coupon code from coupon-service
-            CouponResponse coupon = getCouponCode(responseEntity);
+            CouponResponse coupon = Mapper.getApiResponseData(responseEntity);
             
             // Applying discount
             product.setPrice(productRequest.getPrice().subtract(coupon.getDiscount()));
@@ -217,22 +217,5 @@ public class ProductService implements ProductServiceInterface {
         }
         
         log.info("ProductService::deleteProduct - Ends.");
-    }
-    
-    private CouponResponse getCouponCode(ResponseEntity<APIResponse<CouponResponse>> responseEntity) {
-        APIResponse<CouponResponse> apiResponse = responseEntity.getBody();
-        
-        assert apiResponse != null;
-        if (apiResponse.getStatus().equals("FAILED")) {
-            if (!apiResponse.getErrors().isEmpty()) {
-                String errorDetails = apiResponse.getErrors().get(0).getErrorMessage();
-                
-                throw new InvalidResponseException(errorDetails);
-            }
-            throw new InvalidResponseException("Unknown error occurred.");
-        }
-        
-        
-        return apiResponse.getResults();
     }
 }

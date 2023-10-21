@@ -72,7 +72,7 @@ public class OrderService {
                     .uri(PRODUCT_SERVICE_URL + "/skuCode/" + item.getSkuCode())
                     .retrieve()
                     .toEntity(new ParameterizedTypeReference<APIResponse<ProductResponse>>() {})
-                    .block(); // Blocking to get the response
+                    .block(); // Blocking to get the response until i get a response
             
             ProductResponse productResponse = Mapper.getApiResponseData(responseEntity);
             
