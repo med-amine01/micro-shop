@@ -1,6 +1,7 @@
 package de.tekup.orderservice.service;
 
 import de.tekup.orderservice.dto.*;
+import de.tekup.orderservice.exception.InvalidRequestException;
 import de.tekup.orderservice.exception.OrderServiceException;
 import de.tekup.orderservice.repository.OrderRepository;
 import de.tekup.orderservice.util.Mapper;
@@ -13,10 +14,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -35,7 +34,11 @@ public class OrderService {
     private String PRODUCT_SERVICE_URL;
     
     public OrderResponse placeOrder(OrderRequest orderRequest) {
-        // Check inventory for each item in the order
+        // Check if there is replication in items of same skuCode
+        if (hasDuplicateSkuCodes(orderRequest.getOrderLineItemsRequestList())) {
+            throw new InvalidRequestException("Duplicate items were found");
+        }
+        
         List<OrderLineItemsResponse> orderItems = new ArrayList<>();
         float totalPrice = 0.0F;
         
@@ -63,6 +66,17 @@ public class OrderService {
         return orderResponse;
     }
     
+    private boolean hasDuplicateSkuCodes(List<OrderLineItemsRequest> orderLineItems) {
+        Map<String, Long> skuCodeCounts = orderLineItems
+                .stream()
+                .collect(Collectors.groupingBy(OrderLineItemsRequest::getSkuCode, Collectors.counting()));
+        
+        return skuCodeCounts
+                .values()
+                .stream()
+                .anyMatch(count -> count > 1);
+    }
+
     private float getTotalPrice(OrderLineItemsRequest item, List<OrderLineItemsResponse> orderItems, float totalPrice) {
         try {
             // Call the product service and get product info (unit price)
@@ -147,6 +161,5 @@ public class OrderService {
             throw new OrderServiceException("Error checking product stock " + exception.getMessage());
         }
     }
-    
-    
+
 }
