@@ -1,6 +1,7 @@
 package de.tekup.orderservice.service;
 
 import de.tekup.orderservice.dto.*;
+import de.tekup.orderservice.enums.OrderStatus;
 import de.tekup.orderservice.exception.InvalidRequestException;
 import de.tekup.orderservice.exception.OrderServiceException;
 import de.tekup.orderservice.repository.OrderRepository;
@@ -57,6 +58,7 @@ public class OrderService {
         // Setting up order response
         OrderResponse orderResponse = new OrderResponse();
         orderResponse.setOrderNumber(UUID.randomUUID().toString());
+        orderResponse.setOrderStatus(String.valueOf(OrderStatus.PENDING));
         orderResponse.setItems(orderItems);
         orderResponse.setTotalPrice(totalPrice);
         

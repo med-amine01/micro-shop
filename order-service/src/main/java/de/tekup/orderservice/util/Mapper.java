@@ -7,6 +7,7 @@ import de.tekup.orderservice.dto.OrderLineItemsResponse;
 import de.tekup.orderservice.dto.OrderResponse;
 import de.tekup.orderservice.entity.Order;
 import de.tekup.orderservice.entity.OrderLineItems;
+import de.tekup.orderservice.enums.OrderStatus;
 import de.tekup.orderservice.exception.InvalidResponseException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -27,6 +28,17 @@ public class Mapper {
     public static Order toEntity(OrderResponse orderResponse) {
         Order order = new Order();
         order.setOrderNumber(orderResponse.getOrderNumber());
+
+        // Getting order status
+        String status = orderResponse.getOrderStatus().toLowerCase();
+        if (status.equals("pending")) {
+            order.setOrderStatus(OrderStatus.PENDING);
+        } else if(status.equals("placed")) {
+            order.setOrderStatus(OrderStatus.PLACED);
+        } else {
+            order.setOrderStatus(OrderStatus.CANCELED);
+        }
+
         // Setting converting order line dto to order line entity
         List<OrderLineItems> orderLineItemsList = new ArrayList<>();
         orderResponse.getItems().forEach(itemsResponse -> {
@@ -38,6 +50,12 @@ public class Mapper {
             orderLineItemsList.add(ol);
         });
         order.setOrderLineItemsList(orderLineItemsList);
+
+        // TODO : don't forget to update these fields
+        order.setCreateBy("order-service");
+        order.setUpdatedBy("order-service");
+
+        //Setting total price
         order.setTotalPrice(orderResponse.getTotalPrice());
 
         return order;
@@ -46,6 +64,7 @@ public class Mapper {
     public static OrderResponse toDto(Order order) {
         OrderResponse orderResponse = new OrderResponse();
         orderResponse.setOrderNumber(order.getOrderNumber());
+        orderResponse.setOrderStatus(order.getOrderStatus().toString().toLowerCase());
         List<OrderLineItemsResponse> orderLineItemsResponseList = new ArrayList<>();
         order.getOrderLineItemsList().forEach(orderLineItems -> {
             OrderLineItemsResponse itemsResponse = new OrderLineItemsResponse();

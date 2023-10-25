@@ -11,6 +11,7 @@ import java.util.List;
 @NoArgsConstructor
 public class OrderResponse {
     private String orderNumber;
+    private String orderStatus;
     private List<OrderLineItemsResponse> items;
     private float totalPrice;
 }

@@ -1,12 +1,12 @@
 package de.tekup.orderservice.entity;
 
+import de.tekup.orderservice.enums.OrderStatus;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-import javax.persistence.CascadeType;
-import javax.persistence.Entity;
-import javax.persistence.OneToMany;
-import javax.persistence.Table;
+import javax.persistence.*;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @Entity
@@ -17,7 +17,15 @@ public class Order extends AbstractEntity {
     
     private String orderNumber;
     private float totalPrice;
-    
+    @Enumerated(EnumType.STRING)
+    private OrderStatus orderStatus;
+
     @OneToMany(cascade = CascadeType.ALL)
     private List<OrderLineItems> orderLineItemsList;
+    
+    @Column(name = "created_by", nullable = false, updatable = false)
+    private String createBy;
+    
+    @Column(name = "updated_by")
+    private String updatedBy;
 }

@@ -161,6 +161,10 @@ public class ProductService implements ProductServiceInterface {
             throw exception;
             
         } catch (Exception exception) {
+            if (exception.getClass().getName().contains("CachingConnectionFactory")) {
+                throw new ProductServiceBusinessException("Couldn't connect to rabbitMq");
+            }
+
             log.error("Exception occurred while persisting product, Exception message {}", exception.getMessage());
             throw new ProductServiceBusinessException("Exception occurred while creating a new product");
         }
