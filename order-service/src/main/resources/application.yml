@@ -3,3 +3,8 @@ spring:
     name: order-service
   profiles:
     active: dev
+
+rabbitmq:
+  queue: ${broker.order.queue}
+  exchange: ${broker.order.exchange}
+  routing-key: ${broker.order.routing-key}
