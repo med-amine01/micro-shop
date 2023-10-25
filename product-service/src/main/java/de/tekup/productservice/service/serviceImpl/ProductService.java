@@ -4,10 +4,10 @@ import de.tekup.productservice.config.RabbitMqConfig;
 import de.tekup.productservice.config.RestTemplateConfig;
 import de.tekup.productservice.dto.APIResponse;
 import de.tekup.productservice.dto.CouponResponse;
-import de.tekup.productservice.dto.ProductRequestDTO;
-import de.tekup.productservice.dto.ProductResponseDTO;
+import de.tekup.productservice.dto.ProductRequest;
+import de.tekup.productservice.dto.ProductResponse;
 import de.tekup.productservice.entity.Product;
-import de.tekup.productservice.exception.MicroserviceInvalidResponseException;
+import de.tekup.productservice.exception.InvalidResponseException;
 import de.tekup.productservice.exception.ProductAlreadyExistsException;
 import de.tekup.productservice.exception.ProductNotFoundException;
 import de.tekup.productservice.exception.ProductServiceBusinessException;
@@ -42,20 +42,20 @@ public class ProductService implements ProductServiceInterface {
     //private final WebClient.Builder webClientBuilder;
     
     @Override
-    public List<ProductResponseDTO> getProducts() throws ProductServiceBusinessException {
+    public List<ProductResponse> getProducts() throws ProductServiceBusinessException {
         try {
             log.info("ProductService::getProducts - Fetching Started.");
             
             List<Product> products = productRepository.findAll();
             
-            List<ProductResponseDTO> productResponseDTOS = products.stream()
+            List<ProductResponse> productResponses = products.stream()
                     .map(Mapper::toDto)
                     .toList();
             
-            log.info("ProductService::getProducts - Fetched {} products", productResponseDTOS.size());
+            log.info("ProductService::getProducts - Fetched {} products", productResponses.size());
             
             log.info("ProductService::getProducts - Fetching Ends.");
-            return productResponseDTOS;
+            return productResponses;
             
         } catch (Exception exception) {
             log.error("Exception occurred while retrieving products, Exception message: {}", exception.getMessage());
@@ -64,19 +64,19 @@ public class ProductService implements ProductServiceInterface {
     }
     
     @Override
-    public ProductResponseDTO getProductById(Long id) throws ProductServiceBusinessException {
+    public ProductResponse getProductById(Long id) throws ProductServiceBusinessException {
         try {
             log.info("ProductService::getProductById - Fetching Started.");
             
             Product product = productRepository.findById(id)
                     .orElseThrow(() -> new ProductNotFoundException("Product with ID " + id + " not found"));
             
-            ProductResponseDTO productResponseDTO = Mapper.toDto(product);
+            ProductResponse productResponse = Mapper.toDto(product);
             
-            log.debug("ProductService::getProductById - Product retrieved by ID: {} {}", id, Mapper.jsonToString(productResponseDTO));
+            log.debug("ProductService::getProductById - Product retrieved by ID: {} {}", id, Mapper.jsonToString(productResponse));
             
             log.info("ProductService::getProductById - Fetching Ends.");
-            return productResponseDTO;
+            return productResponse;
             
         } catch (ProductNotFoundException exception) {
             log.error(exception.getMessage());
@@ -89,45 +89,70 @@ public class ProductService implements ProductServiceInterface {
     }
     
     @Override
-    public ProductResponseDTO createProduct(ProductRequestDTO productRequestDTO) throws ProductServiceBusinessException {
+    public ProductResponse getProductBySkuCode(String skuCode) throws ProductServiceBusinessException {
+        try {
+            log.info("ProductService::getProductBySkuCode - Fetching Started.");
+            
+            Product product = productRepository.findBySkuCode(skuCode)
+                    .orElseThrow(() -> new ProductNotFoundException("Product with SkuCode " + skuCode + " not found"));
+            
+            ProductResponse productResponse = Mapper.toDto(product);
+            
+            log.debug("ProductService::getProductBySkuCode - Product retrieved by SkuCode: {} {}", skuCode, Mapper.jsonToString(productResponse));
+            
+            log.info("ProductService::getProductBySkuCode - Fetching Ends.");
+            return productResponse;
+            
+        } catch (ProductNotFoundException exception) {
+            log.error(exception.getMessage());
+            throw exception;
+            
+        } catch (Exception exception) {
+            log.error("Exception occurred while retrieving Product, Exception message: {}", exception.getMessage());
+            throw new ProductServiceBusinessException("Exception occurred while fetching product by SkuCode");
+        }
+    }
+    
+    @Override
+    public ProductResponse createProduct(ProductRequest productRequest) throws ProductServiceBusinessException {
         try {
             log.info("ProductService::createProduct - STARTED.");
             
-            if (productRepository.existsByName(productRequestDTO.getName())) {
-                throw new ProductAlreadyExistsException("Product with name " + productRequestDTO.getName() + " already exists");
+            if (productRepository.existsByName(productRequest.getName())) {
+                throw new ProductAlreadyExistsException("Product with name " + productRequest.getName() + " already exists");
             }
 
-            Product product = Mapper.toEntity(productRequestDTO);
+            Product product = Mapper.toEntity(productRequest);
             
             // Retrieving coupon from coupon-service and map it to APIResponse
             ResponseEntity<APIResponse<CouponResponse>> responseEntity = restTemplate
                     .getRestTemplate()
-                    .exchange(COUPON_SERVICE_URL + "/code/" + productRequestDTO.getCouponCode(),
+                    .exchange(COUPON_SERVICE_URL + "/code/" + productRequest.getCouponCode(),
                     HttpMethod.GET,
                     null,
                     new ParameterizedTypeReference<>() {
                     });
             
             //Getting coupon code from coupon-service
-            CouponResponse coupon = getCouponCode(responseEntity);
+            CouponResponse coupon = Mapper.getApiResponseData(responseEntity);
             
             // Applying discount
-            product.setPrice(productRequestDTO.getPrice().subtract(coupon.getDiscount()));
+            product.setPrice(productRequest.getPrice().subtract(coupon.getDiscount()));
             
             // Saving product
             Product persistedProduct = productRepository.save(product);
             
-            ProductResponseDTO productResponseDTO = Mapper.toDto(persistedProduct);
-            log.debug("ProductService::createProduct - product created : {}", Mapper.jsonToString(productResponseDTO));
+            ProductResponse productResponse = Mapper.toDto(persistedProduct);
+            log.debug("ProductService::createProduct - product created : {}", Mapper.jsonToString(productResponse));
             
             // Sending to rabbitMq
-            rabbitTemplate.convertAndSend(RabbitMqConfig.EXCHANGE, RabbitMqConfig.ROUTING_KEY, productResponseDTO);
+            rabbitTemplate.convertAndSend(RabbitMqConfig.EXCHANGE, RabbitMqConfig.ROUTING_KEY, productResponse);
             log.info("ProductService::createProduct - product sent to QUEUE");
             
             log.info("ProductService::createProduct - ENDS.");
-            return productResponseDTO;
+            return productResponse;
             
-        } catch (MicroserviceInvalidResponseException exception) {
+        } catch (InvalidResponseException exception) {
             log.error(exception.getMessage());
             throw exception;
             
@@ -136,31 +161,35 @@ public class ProductService implements ProductServiceInterface {
             throw exception;
             
         } catch (Exception exception) {
+            if (exception.getClass().getName().contains("CachingConnectionFactory")) {
+                throw new ProductServiceBusinessException("Couldn't connect to rabbitMq");
+            }
+
             log.error("Exception occurred while persisting product, Exception message {}", exception.getMessage());
             throw new ProductServiceBusinessException("Exception occurred while creating a new product");
         }
     }
     
     @Override
-    public ProductResponseDTO updateProduct(Long id, ProductRequestDTO updatedProduct) throws ProductServiceBusinessException {
+    public ProductResponse updateProduct(Long id, ProductRequest updatedProduct) throws ProductServiceBusinessException {
         try {
             log.info("ProductService::updateProduct - Started.");
             
             Product product = Mapper.toEntity(updatedProduct);
             
             // Fetch the existing product and update its properties
-            ProductResponseDTO existingProduct = getProductById(id);
+            ProductResponse existingProduct = getProductById(id);
             product.setId(id);
             product.setCreatedAt(existingProduct.getCreatedAt());
             
             // Update the product and convert to response DTO
             Product persistedProduct = productRepository.save(product);
-            ProductResponseDTO productResponseDTO = Mapper.toDto(persistedProduct);
+            ProductResponse productResponse = Mapper.toDto(persistedProduct);
             
-            log.debug("ProductService::updateProduct - Updated product: {}", Mapper.jsonToString(productResponseDTO));
+            log.debug("ProductService::updateProduct - Updated product: {}", Mapper.jsonToString(productResponse));
             log.info("ProductService::updateProduct - Completed for ID: {}", id);
             
-            return productResponseDTO;
+            return productResponse;
             
         } catch (Exception exception) {
             log.error("Exception occurred while updating product, Exception message: {}", exception.getMessage());
@@ -192,22 +221,5 @@ public class ProductService implements ProductServiceInterface {
         }
         
         log.info("ProductService::deleteProduct - Ends.");
-    }
-    
-    private CouponResponse getCouponCode(ResponseEntity<APIResponse<CouponResponse>> responseEntity) {
-        APIResponse<CouponResponse> apiResponse = responseEntity.getBody();
-        
-        assert apiResponse != null;
-        if (apiResponse.getStatus().equals("FAILED")) {
-            if (!apiResponse.getErrors().isEmpty()) {
-                String errorDetails = apiResponse.getErrors().get(0).getErrorMessage();
-                
-                throw new MicroserviceInvalidResponseException(errorDetails);
-            }
-            throw new MicroserviceInvalidResponseException("Unknown error occurred.");
-        }
-        
-        
-        return apiResponse.getResults();
     }
 }

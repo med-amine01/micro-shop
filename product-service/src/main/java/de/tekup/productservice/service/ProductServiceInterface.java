@@ -1,20 +1,22 @@
 package de.tekup.productservice.service;
 
-import de.tekup.productservice.dto.ProductRequestDTO;
-import de.tekup.productservice.dto.ProductResponseDTO;
+import de.tekup.productservice.dto.ProductRequest;
+import de.tekup.productservice.dto.ProductResponse;
 import de.tekup.productservice.exception.ProductServiceBusinessException;
 
 import java.util.List;
 
 public interface ProductServiceInterface {
     
-    List<ProductResponseDTO> getProducts() throws ProductServiceBusinessException;
+    List<ProductResponse> getProducts() throws ProductServiceBusinessException;
     
-    ProductResponseDTO getProductById(Long id) throws ProductServiceBusinessException;
+    ProductResponse getProductById(Long id) throws ProductServiceBusinessException;
+
+    ProductResponse getProductBySkuCode(String skuCode) throws ProductServiceBusinessException;
     
-    ProductResponseDTO createProduct(ProductRequestDTO productRequestDTO);
+    ProductResponse createProduct(ProductRequest productRequest);
     
-    ProductResponseDTO updateProduct(Long id, ProductRequestDTO updatedProduct) throws ProductServiceBusinessException;
+    ProductResponse updateProduct(Long id, ProductRequest updatedProduct) throws ProductServiceBusinessException;
     
     void deleteProduct(Long id);
 }

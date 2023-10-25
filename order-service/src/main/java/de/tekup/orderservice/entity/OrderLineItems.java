@@ -5,7 +5,6 @@ import lombok.EqualsAndHashCode;
 
 import javax.persistence.Entity;
 import javax.persistence.Table;
-import java.math.BigDecimal;
 
 @Entity
 @Table(name="_order_line_items")
@@ -14,6 +13,7 @@ import java.math.BigDecimal;
 public class OrderLineItems extends AbstractEntity {
     
     private String skuCode;
-    private BigDecimal price;
+    private float unitePrice;
     private Integer quantity;
+    private float price;
 }

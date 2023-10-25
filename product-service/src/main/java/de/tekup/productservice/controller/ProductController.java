@@ -1,8 +1,8 @@
 package de.tekup.productservice.controller;
 
 import de.tekup.productservice.dto.APIResponse;
-import de.tekup.productservice.dto.ProductRequestDTO;
-import de.tekup.productservice.dto.ProductResponseDTO;
+import de.tekup.productservice.dto.ProductRequest;
+import de.tekup.productservice.dto.ProductResponse;
 import de.tekup.productservice.service.ProductServiceInterface;
 import de.tekup.productservice.util.Mapper;
 import lombok.AllArgsConstructor;
@@ -23,11 +23,12 @@ public class ProductController {
     private final ProductServiceInterface productServiceInterface;
     
     @GetMapping
-    public ResponseEntity<APIResponse<List<ProductResponseDTO>>> getAllProducts() {
-        List<ProductResponseDTO> products = productServiceInterface.getProducts();
+    public ResponseEntity<APIResponse<List<ProductResponse>>> getAllProducts()
+    {
+        List<ProductResponse> products = productServiceInterface.getProducts();
         
-        APIResponse<List<ProductResponseDTO>> responseDTO = APIResponse
-                .<List<ProductResponseDTO>>builder()
+        APIResponse<List<ProductResponse>> responseDTO = APIResponse
+                .<List<ProductResponse>>builder()
                 .status(SUCCESS)
                 .results(products)
                 .build();
@@ -36,30 +37,49 @@ public class ProductController {
         return new ResponseEntity<>(responseDTO, HttpStatus.OK);
     }
     
-    @GetMapping("/{id}")
-    public ResponseEntity<APIResponse<ProductResponseDTO>> getProductById(@PathVariable Long id) {
-        log.info("ProductController::getProductById {}", id);
-        ProductResponseDTO productResponseDTO = productServiceInterface.getProductById(id);
+    @GetMapping("/skuCode/{skuCode}")
+    public ResponseEntity<APIResponse<ProductResponse>> getProductBySkuCode(@PathVariable String skuCode)
+    {
+        log.info("ProductController::getProductBySkuCode {}", skuCode);
+        ProductResponse productResponse = productServiceInterface.getProductBySkuCode(skuCode);
         
-        APIResponse<ProductResponseDTO> responseDTO = APIResponse
-                .<ProductResponseDTO>builder()
+        APIResponse<ProductResponse> responseDTO = APIResponse
+                .<ProductResponse>builder()
                 .status(SUCCESS)
-                .results(productResponseDTO)
+                .results(productResponse)
                 .build();
         
-        log.info("ProductController::getProductById {} response {}", id, Mapper.jsonToString(productResponseDTO));
+        log.info("ProductController::getProductBySkuCode {} response {}", skuCode, Mapper.jsonToString(productResponse));
+        
+        return new ResponseEntity<>(responseDTO, HttpStatus.OK);
+    }
+    
+    @GetMapping("/{id}")
+    public ResponseEntity<APIResponse<ProductResponse>> getProductById(@PathVariable Long id)
+    {
+        log.info("ProductController::getProductById {}", id);
+        ProductResponse productResponse = productServiceInterface.getProductById(id);
+        
+        APIResponse<ProductResponse> responseDTO = APIResponse
+                .<ProductResponse>builder()
+                .status(SUCCESS)
+                .results(productResponse)
+                .build();
+        
+        log.info("ProductController::getProductById {} response {}", id, Mapper.jsonToString(productResponse));
         
         return new ResponseEntity<>(responseDTO, HttpStatus.OK);
     }
     
     @PostMapping
-    public ResponseEntity<APIResponse<ProductResponseDTO>> createProduct(@RequestBody @Valid ProductRequestDTO productRequestDTO) {
-        log.info("ProductController::createProduct request body {}", Mapper.jsonToString(productRequestDTO));
+    public ResponseEntity<APIResponse<ProductResponse>> createProduct(@RequestBody @Valid ProductRequest productRequest)
+    {
+        log.info("ProductController::createProduct request body {}", Mapper.jsonToString(productRequest));
         
-        ProductResponseDTO createdProduct = productServiceInterface.createProduct(productRequestDTO);
+        ProductResponse createdProduct = productServiceInterface.createProduct(productRequest);
         
-        APIResponse<ProductResponseDTO> responseDTO = APIResponse
-                .<ProductResponseDTO>builder()
+        APIResponse<ProductResponse> responseDTO = APIResponse
+                .<ProductResponse>builder()
                 .status(SUCCESS)
                 .results(createdProduct)
                 .build();
@@ -69,16 +89,17 @@ public class ProductController {
     }
     
     @PutMapping("/{id}")
-    public ResponseEntity<APIResponse<ProductResponseDTO>> updateProduct(
+    public ResponseEntity<APIResponse<ProductResponse>> updateProduct(
             @PathVariable Long id,
-            @Valid @RequestBody ProductRequestDTO productRequestDTO
-    ) {
-        log.info("ProductController::updateProduct request body {}", Mapper.jsonToString(productRequestDTO));
+            @Valid @RequestBody ProductRequest productRequest
+    )
+    {
+        log.info("ProductController::updateProduct request body {}", Mapper.jsonToString(productRequest));
         
-        ProductResponseDTO updatedProduct = productServiceInterface.updateProduct(id, productRequestDTO);
+        ProductResponse updatedProduct = productServiceInterface.updateProduct(id, productRequest);
         
-        APIResponse<ProductResponseDTO> responseDTO = APIResponse
-                .<ProductResponseDTO>builder()
+        APIResponse<ProductResponse> responseDTO = APIResponse
+                .<ProductResponse>builder()
                 .status(SUCCESS)
                 .results(updatedProduct)
                 .build();
@@ -88,7 +109,8 @@ public class ProductController {
     }
     
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteProduct(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteProduct(@PathVariable Long id)
+    {
         productServiceInterface.deleteProduct(id);
         return ResponseEntity.noContent().build();
     }

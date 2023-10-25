@@ -43,7 +43,8 @@ public class InventoryController {
     public ResponseEntity<APIResponse<InventoryResponseDTO>> initializeProductQuantity
             (
                 @PathVariable("skuCode") @NotBlank @Size(min = 2) String skuCode
-            ) {
+            ) throws Exception
+    {
 
         InventoryResponseDTO prodResponseDto = inventoryService.initQuantityFromQueue(skuCode);
         
