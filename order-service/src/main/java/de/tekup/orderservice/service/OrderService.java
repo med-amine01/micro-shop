@@ -8,6 +8,7 @@ import de.tekup.orderservice.repository.OrderRepository;
 import de.tekup.orderservice.util.Mapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.ResponseEntity;
@@ -27,6 +28,8 @@ public class OrderService {
     private final OrderRepository orderRepository;
     
     private final WebClient.Builder webClientBuilder;
+    
+    private final RabbitTemplate rabbitTemplate;
     
     @Value("${microservices.inventory-service.uri}")
     private String INVENTORY_SERVICE_URL;
