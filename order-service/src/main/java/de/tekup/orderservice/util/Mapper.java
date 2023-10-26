@@ -30,10 +30,10 @@ public class Mapper {
         order.setOrderNumber(orderResponse.getOrderNumber());
 
         // Getting order status
-        String status = orderResponse.getOrderStatus().toLowerCase();
-        if (status.equals("pending")) {
+        String status = orderResponse.getOrderStatus();
+        if (status.equalsIgnoreCase("pending")) {
             order.setOrderStatus(OrderStatus.PENDING);
-        } else if(status.equals("placed")) {
+        } else if(status.equalsIgnoreCase("placed")) {
             order.setOrderStatus(OrderStatus.PLACED);
         } else {
             order.setOrderStatus(OrderStatus.CANCELED);
@@ -64,7 +64,7 @@ public class Mapper {
     public static OrderResponse toDto(Order order) {
         OrderResponse orderResponse = new OrderResponse();
         orderResponse.setOrderNumber(order.getOrderNumber());
-        orderResponse.setOrderStatus(order.getOrderStatus().toString().toLowerCase());
+        orderResponse.setOrderStatus(order.getOrderStatus().toString());
         List<OrderLineItemsResponse> orderLineItemsResponseList = new ArrayList<>();
         order.getOrderLineItemsList().forEach(orderLineItems -> {
             OrderLineItemsResponse itemsResponse = new OrderLineItemsResponse();
@@ -75,6 +75,7 @@ public class Mapper {
             orderLineItemsResponseList.add(itemsResponse);
         });
         orderResponse.setItems(orderLineItemsResponseList);
+        orderResponse.setTotalPrice(order.getTotalPrice());
         
         return orderResponse;
     }

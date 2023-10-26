@@ -5,6 +5,7 @@ import de.tekup.orderservice.dto.APIResponse;
 import de.tekup.orderservice.dto.ErrorDTO;
 import de.tekup.orderservice.exception.InvalidRequestException;
 import de.tekup.orderservice.exception.InvalidResponseException;
+import de.tekup.orderservice.exception.OrderNotFoundException;
 import de.tekup.orderservice.exception.OrderServiceException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -35,6 +36,11 @@ public class OrderServiceExceptionHandler {
         serviceResponse.setStatus(FAILED);
         serviceResponse.setErrors(errors);
         return serviceResponse;
+    }
+    
+    @ExceptionHandler(OrderNotFoundException.class)
+    public APIResponse<?> handleOrderNotFoundException(OrderNotFoundException exception) {
+        return getServiceResponse(exception);
     }
     
     @ExceptionHandler(InvalidRequestException.class)

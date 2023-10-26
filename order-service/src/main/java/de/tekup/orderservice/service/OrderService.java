@@ -1,8 +1,10 @@
 package de.tekup.orderservice.service;
 
 import de.tekup.orderservice.dto.*;
+import de.tekup.orderservice.entity.Order;
 import de.tekup.orderservice.enums.OrderStatus;
 import de.tekup.orderservice.exception.InvalidRequestException;
+import de.tekup.orderservice.exception.OrderNotFoundException;
 import de.tekup.orderservice.exception.OrderServiceException;
 import de.tekup.orderservice.repository.OrderRepository;
 import de.tekup.orderservice.util.Mapper;
@@ -36,6 +38,29 @@ public class OrderService {
     
     @Value("${microservices.product-service.uri}")
     private String PRODUCT_SERVICE_URL;
+    
+    public OrderResponse updateOrderStatus(OrderStatusRequest orderStatusRequest, String uuid) {
+        // Get order by uuid
+        Order order = orderRepository
+                .findByOrderNumber(uuid)
+                .orElseThrow(() -> new OrderNotFoundException("Order with uuid : " + uuid + " not found"));
+        
+        // If fetched order(db) status is the same order(rq) status throw exception
+        String fetchedStatus = order.getOrderStatus().toString();
+        if (fetchedStatus.equalsIgnoreCase(orderStatusRequest.getOrderStatus())) {
+            throw new OrderServiceException("the order already " + fetchedStatus +" you can't update a "+ fetchedStatus +" order");
+        }
+        
+        // Patch order status
+        String requestedStatus = orderStatusRequest.getOrderStatus();
+        if (requestedStatus.equalsIgnoreCase("placed")) {
+            order.setOrderStatus(OrderStatus.PLACED);
+        } else {
+            order.setOrderStatus(OrderStatus.CANCELED);
+        }
+        
+        return Mapper.toDto(orderRepository.save(order));
+    }
     
     public OrderResponse placeOrder(OrderRequest orderRequest) {
         // Check if there is replication in items of same skuCode
