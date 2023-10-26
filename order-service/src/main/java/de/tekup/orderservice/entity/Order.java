@@ -5,8 +5,6 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 import javax.persistence.*;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @Entity
@@ -19,7 +17,8 @@ public class Order extends AbstractEntity {
     private float totalPrice;
     @Enumerated(EnumType.STRING)
     private OrderStatus orderStatus;
-
+    
+    @Column(name = "items")
     @OneToMany(cascade = CascadeType.ALL)
     private List<OrderLineItems> orderLineItemsList;
     
