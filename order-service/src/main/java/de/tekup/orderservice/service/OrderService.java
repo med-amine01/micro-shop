@@ -45,18 +45,28 @@ public class OrderService {
                 .findByOrderNumber(uuid)
                 .orElseThrow(() -> new OrderNotFoundException("Order with uuid : " + uuid + " not found"));
         
-        // If fetched order(db) status is the same order(rq) status throw exception
         String fetchedStatus = order.getOrderStatus().toString();
+
+        // You can't change update a canceled order
+        if (fetchedStatus.equalsIgnoreCase(String.valueOf(OrderStatus.CANCELED))) {
+            throw new OrderServiceException("the order already canceled");
+        }
+        
+        // If fetched order(db) status is the same order(rq) status throw exception
         if (fetchedStatus.equalsIgnoreCase(orderStatusRequest.getOrderStatus())) {
             throw new OrderServiceException("the order already " + fetchedStatus +" you can't update a "+ fetchedStatus +" order");
         }
         
         // Patch order status
         String requestedStatus = orderStatusRequest.getOrderStatus();
-        if (requestedStatus.equalsIgnoreCase("placed")) {
+        if (requestedStatus.equalsIgnoreCase(String.valueOf(OrderStatus.PLACED))) {
             order.setOrderStatus(OrderStatus.PLACED);
         } else {
             order.setOrderStatus(OrderStatus.CANCELED);
+            order.getOrderLineItemsList().forEach(items -> {
+                // Re-increase the stock if the order is canceled
+                updateStock(items.getSkuCode(), items.getQuantity(), true);
+            });
         }
         
         return Mapper.toDto(orderRepository.save(order));
@@ -74,11 +84,16 @@ public class OrderService {
         // All requested products and quantity are in stock
         sniffStock(orderRequest);
         
+        // If sniffing from stock passed here ! means that quantity is in stock
         for (OrderLineItemsRequest item : orderRequest.getOrderLineItemsRequestList()) {
+            // For every item checks product-service
+            // Get the product info and calculate : price =  qte * unit price
+            // Sum all the items prices
             totalPrice = getTotalPrice(item, orderItems, totalPrice);
+            // Decrease inventory stock whether it's (default:PENDING) or PLACED
+            updateStock(item.getSkuCode(), item.getQuantity(), false);
         }
         
-        // Check if all items in the order are in stock
         if (orderItems.isEmpty()) {
             throw new OrderServiceException("Couldn't create order, no items were found");
         }
@@ -189,6 +204,32 @@ public class OrderService {
         } catch (Exception exception) {
             log.error(exception.getMessage());
             throw new OrderServiceException("Error checking product stock " + exception.getMessage());
+        }
+    }
+    
+    private void updateStock(String skuCode, int quantity, boolean increase) {
+        try {
+            InventoryRequest inventoryRequest = new InventoryRequest();
+            inventoryRequest.setQuantity(quantity);
+            inventoryRequest.setIncrease(increase);
+
+            ResponseEntity<APIResponse<InventoryResponse>> responseEntity = webClientBuilder
+                    .build()
+                    .put()
+                    .uri(INVENTORY_SERVICE_URL + "/product/quantity/" + skuCode)
+                    .bodyValue(inventoryRequest)
+                    .retrieve()
+                    .toEntity(new ParameterizedTypeReference<APIResponse<InventoryResponse>>() {})
+                    .block(); // Blocking to get the response until i get a response
+            
+            InventoryResponse inventoryResponse = Mapper.getApiResponseData(responseEntity);
+
+            if (inventoryResponse == null) {
+                throw new OrderServiceException("Couldn't update the stock of " + skuCode);
+            }
+            
+        } catch (Exception exception) {
+            throw new OrderServiceException("Error updating stock " + exception.getMessage());
         }
     }
 
