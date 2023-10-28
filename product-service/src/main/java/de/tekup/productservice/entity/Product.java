@@ -5,7 +5,6 @@ import lombok.EqualsAndHashCode;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.Transient;
 import java.math.BigDecimal;
 
 @Entity
@@ -17,7 +16,7 @@ public class Product extends AbstractEntity  {
     private String skuCode;
     private String name;
     private String description;
-    private BigDecimal price;
-    @Transient
     private String couponCode;
+    private BigDecimal price;
+    private BigDecimal discountedPrice;
 }

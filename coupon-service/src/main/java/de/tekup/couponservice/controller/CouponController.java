@@ -4,7 +4,7 @@ import de.tekup.couponservice.dto.APIResponse;
 import de.tekup.couponservice.dto.CouponRequestDTO;
 import de.tekup.couponservice.dto.CouponResponseDTO;
 import de.tekup.couponservice.service.CouponServiceInterface;
-import de.tekup.couponservice.util.ValueMapper;
+import de.tekup.couponservice.util.Mapper;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -33,27 +33,12 @@ public class CouponController {
                 .results(coupons)
                 .build();
 
-        log.info("CouponController::getAllCoupons response {}", ValueMapper.jsonToString(responseDTO));
+        log.info("CouponController::getAllCoupons response {}", Mapper.jsonToString(responseDTO));
         return new ResponseEntity<>(responseDTO, HttpStatus.OK);
     }
+    
 
-    @GetMapping("/{id}")
-    public ResponseEntity<APIResponse<CouponResponseDTO>> getCouponById(@PathVariable Long id) {
-        log.info("CouponController::getCouponById {}", id);
-        CouponResponseDTO couponResponseDTO = couponServiceInterface.getCouponById(id);
-
-        APIResponse<CouponResponseDTO> responseDTO = APIResponse
-                .<CouponResponseDTO>builder()
-                .status(SUCCESS)
-                .results(couponResponseDTO)
-                .build();
-
-        log.info("CouponController::getCouponById {} response {}", id, ValueMapper.jsonToString(couponResponseDTO));
-
-        return new ResponseEntity<>(responseDTO, HttpStatus.OK);
-    }
-
-    @GetMapping("/code/{code}")
+    @GetMapping("/{code}")
     public ResponseEntity<APIResponse<CouponResponseDTO>> getCouponByCode(@PathVariable String code) {
         log.info("CouponController::getCouponByCode {}", code);
         CouponResponseDTO couponResponseDTO = couponServiceInterface.getCouponByCode(code);
@@ -64,14 +49,14 @@ public class CouponController {
                 .results(couponResponseDTO)
                 .build();
 
-        log.info("CouponController::getCouponByCode {} response {}", code, ValueMapper.jsonToString(couponResponseDTO));
+        log.info("CouponController::getCouponByCode {} response {}", code, Mapper.jsonToString(couponResponseDTO));
 
         return ResponseEntity.ok(responseDTO);
     }
 
     @PostMapping
     public ResponseEntity<APIResponse<CouponResponseDTO>> createCoupon(@RequestBody @Valid CouponRequestDTO couponRequestDTO) {
-        log.info("CouponController::createCoupon request body {}", ValueMapper.jsonToString(couponRequestDTO));
+        log.info("CouponController::createCoupon request body {}", Mapper.jsonToString(couponRequestDTO));
 
         CouponResponseDTO createdCoupon = couponServiceInterface.createCoupon(couponRequestDTO);
 
@@ -81,18 +66,18 @@ public class CouponController {
                 .results(createdCoupon)
                 .build();
 
-        log.info("ProductController::createNewProduct response {}", ValueMapper.jsonToString(responseDTO));
+        log.info("ProductController::createNewProduct response {}", Mapper.jsonToString(responseDTO));
         return ResponseEntity.status(HttpStatus.CREATED).body(responseDTO);
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/{code}")
     public ResponseEntity<APIResponse<CouponResponseDTO>> updateCoupon(
-            @PathVariable Long id,
+            @PathVariable String code,
             @Valid @RequestBody CouponRequestDTO couponRequestDTO
     ) {
-        log.info("CouponController::updateCoupon request body {}", ValueMapper.jsonToString(couponRequestDTO));
+        log.info("CouponController::updateCoupon request body {}", Mapper.jsonToString(couponRequestDTO));
 
-        CouponResponseDTO updatedCoupon = couponServiceInterface.updateCoupon(id, couponRequestDTO);
+        CouponResponseDTO updatedCoupon = couponServiceInterface.updateCoupon(code, couponRequestDTO);
 
         APIResponse<CouponResponseDTO> responseDTO = APIResponse
                 .<CouponResponseDTO>builder()
@@ -100,13 +85,21 @@ public class CouponController {
                 .results(updatedCoupon)
                 .build();
 
-        log.info("ProductController::updateCoupon response {}", ValueMapper.jsonToString(responseDTO));
+        log.info("ProductController::updateCoupon response {}", Mapper.jsonToString(responseDTO));
         return ResponseEntity.ok(responseDTO);
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteCoupon(@PathVariable Long id) {
-        couponServiceInterface.deleteCoupon(id);
-        return ResponseEntity.noContent().build();
+    @DeleteMapping("/{code}")
+    public ResponseEntity<APIResponse<CouponResponseDTO>> disableCoupon(@PathVariable String code) {
+        
+        CouponResponseDTO disabledCoupon = couponServiceInterface.disableCoupon(code);
+
+        APIResponse<CouponResponseDTO> responseDTO = APIResponse
+                .<CouponResponseDTO>builder()
+                .status(SUCCESS)
+                .results(disabledCoupon)
+                .build();
+        
+        return ResponseEntity.ok(responseDTO);
     }
 }

@@ -23,10 +23,10 @@ public class Mapper {
         Product product = new Product();
         product.setSkuCode(productRequest.getSkuCode());
         product.setName(productRequest.getName());
+        product.setCouponCode(productRequest.getCouponCode());
         product.setDescription(productRequest.getDescription());
         product.setPrice(productRequest.getPrice());
-        product.setCouponCode(productRequest.getCouponCode());
-        
+
         return product;
     }
     
@@ -34,12 +34,11 @@ public class Mapper {
         ProductResponse productResponse = new ProductResponse();
         productResponse.setSkuCode(product.getSkuCode());
         productResponse.setName(product.getName());
+        productResponse.setCouponCode(product.getCouponCode());
         productResponse.setDescription(product.getDescription());
         productResponse.setPrice(product.getPrice());
-        productResponse.setCouponCode(product.getCouponCode());
-        productResponse.setCreatedAt(product.getCreatedAt());
-        productResponse.setUpdatedAt(product.getUpdatedAt());
-        
+        productResponse.setDiscountedPrice(product.getDiscountedPrice());
+
         return productResponse;
     }
     

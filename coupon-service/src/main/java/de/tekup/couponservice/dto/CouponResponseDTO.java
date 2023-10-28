@@ -13,10 +13,8 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class CouponResponseDTO {
-    private Long id;
     private String code;
     private BigDecimal discount;
     private String expirationDate;
-    private String createdAt;
-    private String updatedAt;
+    private boolean enabled;
 }

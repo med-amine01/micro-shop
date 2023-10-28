@@ -10,10 +10,8 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 @NoArgsConstructor
 public class CouponResponse {
-    private Long id;
     private String code;
     private BigDecimal discount;
     private String expirationDate;
-    private String createdAt;
-    private String updatedAt;
+    private boolean enabled;
 }

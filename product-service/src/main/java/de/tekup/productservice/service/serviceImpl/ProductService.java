@@ -23,6 +23,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Service
@@ -62,32 +63,7 @@ public class ProductService implements ProductServiceInterface {
             throw new ProductServiceBusinessException("Exception occurred while fetching all products");
         }
     }
-    
-    @Override
-    public ProductResponse getProductById(Long id) throws ProductServiceBusinessException {
-        try {
-            log.info("ProductService::getProductById - Fetching Started.");
-            
-            Product product = productRepository.findById(id)
-                    .orElseThrow(() -> new ProductNotFoundException("Product with ID " + id + " not found"));
-            
-            ProductResponse productResponse = Mapper.toDto(product);
-            
-            log.debug("ProductService::getProductById - Product retrieved by ID: {} {}", id, Mapper.jsonToString(productResponse));
-            
-            log.info("ProductService::getProductById - Fetching Ends.");
-            return productResponse;
-            
-        } catch (ProductNotFoundException exception) {
-            log.error(exception.getMessage());
-            throw exception;
-            
-        } catch (Exception exception) {
-            log.error("Exception occurred while retrieving Product, Exception message: {}", exception.getMessage());
-            throw new ProductServiceBusinessException("Exception occurred while fetching product by id");
-        }
-    }
-    
+
     @Override
     public ProductResponse getProductBySkuCode(String skuCode) throws ProductServiceBusinessException {
         try {
@@ -123,25 +99,39 @@ public class ProductService implements ProductServiceInterface {
             }
 
             Product product = Mapper.toEntity(productRequest);
-            
-            // Retrieving coupon from coupon-service and map it to APIResponse
-            ResponseEntity<APIResponse<CouponResponse>> responseEntity = restTemplate
-                    .getRestTemplate()
-                    .exchange(COUPON_SERVICE_URL + "/code/" + productRequest.getCouponCode(),
-                    HttpMethod.GET,
-                    null,
-                    new ParameterizedTypeReference<>() {
-                    });
-            
-            //Getting coupon code from coupon-service
-            CouponResponse coupon = Mapper.getApiResponseData(responseEntity);
-            
-            // Applying discount
-            product.setPrice(productRequest.getPrice().subtract(coupon.getDiscount()));
+
+            // If there is no coupon code => discounted price should be null
+            if (null == product.getCouponCode()) {
+                product.setDiscountedPrice(null);
+            } else {
+                // Retrieving coupon from coupon-service and map it to APIResponse
+                ResponseEntity<APIResponse<CouponResponse>> responseEntity = restTemplate
+                        .getRestTemplate()
+                        .exchange(COUPON_SERVICE_URL + "/" + productRequest.getCouponCode(),
+                                HttpMethod.GET,
+                                null,
+                                new ParameterizedTypeReference<>() {
+                                });
+                
+                //Getting coupon code from coupon-service
+                CouponResponse coupon = Mapper.getApiResponseData(responseEntity);
+                // If coupon is disabled
+                if (!coupon.isEnabled()) {
+                    throw new ProductServiceBusinessException("Coupon code expired");
+                }
+
+                // Apply discount (discountedPrice)
+                BigDecimal mainPrice = product.getPrice();
+                BigDecimal discountPercentage = coupon.getDiscount().divide(BigDecimal.valueOf(100));
+                BigDecimal discountedPrice = mainPrice.subtract(mainPrice.multiply(discountPercentage));
+
+                product.setDiscountedPrice(discountedPrice);
+            }
             
             // Saving product
             Product persistedProduct = productRepository.save(product);
             
+            // Mapping to product to response
             ProductResponse productResponse = Mapper.toDto(persistedProduct);
             log.debug("ProductService::createProduct - product created : {}", Mapper.jsonToString(productResponse));
             
@@ -171,23 +161,29 @@ public class ProductService implements ProductServiceInterface {
     }
     
     @Override
-    public ProductResponse updateProduct(Long id, ProductRequest updatedProduct) throws ProductServiceBusinessException {
+    public ProductResponse updateProduct(String skuCode, ProductRequest updatedProduct) throws ProductServiceBusinessException {
         try {
             log.info("ProductService::updateProduct - Started.");
             
-            Product product = Mapper.toEntity(updatedProduct);
-            
             // Fetch the existing product and update its properties
-            ProductResponse existingProduct = getProductById(id);
-            product.setId(id);
-            product.setCreatedAt(existingProduct.getCreatedAt());
+            Product existingProduct = productRepository.findBySkuCode(skuCode)
+                    .orElseThrow(() -> new ProductNotFoundException("Product with SkuCode " + skuCode + " not found"));
             
+            if (productRepository.existsBySkuCode(updatedProduct.getSkuCode()) &&
+                    !skuCode.equalsIgnoreCase(updatedProduct.getSkuCode())
+            ) {
+                throw new ProductAlreadyExistsException("Product already exists.");
+            }
+
+            Product product = Mapper.toEntity(updatedProduct);
+            product.setId(existingProduct.getId());
+
             // Update the product and convert to response DTO
             Product persistedProduct = productRepository.save(product);
             ProductResponse productResponse = Mapper.toDto(persistedProduct);
             
             log.debug("ProductService::updateProduct - Updated product: {}", Mapper.jsonToString(productResponse));
-            log.info("ProductService::updateProduct - Completed for ID: {}", id);
+            log.info("ProductService::updateProduct - Completed for skuCode: {}", skuCode);
             
             return productResponse;
             
@@ -199,17 +195,18 @@ public class ProductService implements ProductServiceInterface {
 
     
     @Override
-    public void deleteProduct(Long id) {
-        log.info("ProductService::deleteProduct - Starts.");
+    public ProductResponse disableProduct(String skuCode) throws ProductServiceBusinessException{
+        log.info("ProductService::disableProduct - Starts.");
         
         try {
-            log.info("ProductService::deleteProduct - Deleting product with ID: {}", id);
+            log.info("ProductService::disableProduct - Disabling product with skuCode: {}", skuCode);
             
-            Product product = productRepository.findById(id)
-                    .orElseThrow(() -> new ProductNotFoundException("Product with ID " + id + " not found"));
-            productRepository.delete(product);
+            Product product = productRepository.findBySkuCode(skuCode)
+                    .orElseThrow(() -> new ProductNotFoundException("Product with SkuCode " + skuCode + " not found"));
+            product.setEnabled(false);
             
-            log.info("ProductService::deleteProduct - Deleted product with ID: {}", id);
+            log.info("ProductService::disableProduct - disabled product with skuCode: {}", skuCode);
+            return Mapper.toDto(productRepository.save(product));
             
         } catch (ProductNotFoundException exception) {
             log.error(exception.getMessage());
@@ -219,7 +216,5 @@ public class ProductService implements ProductServiceInterface {
             log.error("Exception occurred while deleting product, Exception message: {}", exception.getMessage());
             throw new ProductServiceBusinessException("Exception occurred while deleting a product");
         }
-        
-        log.info("ProductService::deleteProduct - Ends.");
     }
 }

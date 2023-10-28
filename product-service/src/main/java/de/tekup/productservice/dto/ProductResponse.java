@@ -14,9 +14,8 @@ import java.math.BigDecimal;
 public class ProductResponse {
     private String skuCode;
     private String name;
+    private String couponCode;
     private String description;
     private BigDecimal price;
-    private String couponCode;
-    private String createdAt;
-    private String updatedAt;
+    private BigDecimal discountedPrice;
 }
