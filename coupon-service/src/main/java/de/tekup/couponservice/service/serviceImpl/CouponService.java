@@ -14,8 +14,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @Service
@@ -58,14 +56,6 @@ public class CouponService implements CouponServiceInterface {
             Coupon coupon = couponRepository.findByCode(code)
                     .orElseThrow(() -> new CouponNotFoundException("Coupon with code " + code + " not found"));
             
-            // Check if the coupon is expired
-            // isExpired methode will check expirationDate > date.Now and return => true
-            if (!isExpired(coupon.getExpirationDate())) {
-                // Coupon is Expired !
-                coupon.setEnabled(false);
-                disableCoupon(code);
-            }
-
             CouponResponseDTO couponResponseDTO = Mapper.toDto(coupon);
 
             log.debug("CouponService::getCouponByCode - Coupon retrieved by code: {} {}", code, Mapper.jsonToString(couponResponseDTO));
@@ -165,15 +155,6 @@ public class CouponService implements CouponServiceInterface {
         } catch (Exception exception) {
             log.error("Exception occurred while disabling coupon, Exception message: {}", exception.getMessage());
             throw new CouponServiceBusinessException("Exception occurred while disabling a coupon");
-        }
-    }
-    
-    private boolean isExpired(String date) {
-        try {
-            LocalDate expirationDate = LocalDate.parse(date, DateTimeFormatter.ofPattern("dd-MM-yyyy"));
-            return expirationDate.isAfter(LocalDate.now());
-        } catch (Exception e) {
-            return false; // Invalid date format
         }
     }
 }
