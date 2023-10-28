@@ -1,6 +1,6 @@
 package de.tekup.couponservice.validation;
 
-import de.tekup.couponservice.validation.impl.FutureExpirationDateValidator;
+import de.tekup.couponservice.validation.impl.FutureExpirationDateTimeValidator;
 
 import javax.validation.Constraint;
 import javax.validation.Payload;
@@ -11,8 +11,8 @@ import java.lang.annotation.Target;
 
 @Target({ElementType.FIELD})
 @Retention(RetentionPolicy.RUNTIME)
-@Constraint(validatedBy = FutureExpirationDateValidator.class)
-public @interface FutureExpirationDate {
+@Constraint(validatedBy = FutureExpirationDateTimeValidator.class)
+public @interface FutureExpirationDateTime {
     String message() default "Expiration date must be in the future";
     Class<?>[] groups() default {};
     Class<? extends Payload>[] payload() default {};
