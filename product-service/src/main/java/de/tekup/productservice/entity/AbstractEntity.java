@@ -14,7 +14,9 @@ public abstract class AbstractEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    
+
+    private boolean enabled = true;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     @JsonFormat(pattern = "dd-MM-yyyy HH:mm:ss")
     private String createdAt;

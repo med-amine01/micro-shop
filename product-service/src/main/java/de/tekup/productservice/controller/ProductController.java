@@ -37,7 +37,7 @@ public class ProductController {
         return new ResponseEntity<>(responseDTO, HttpStatus.OK);
     }
     
-    @GetMapping("/skuCode/{skuCode}")
+    @GetMapping("/{skuCode}")
     public ResponseEntity<APIResponse<ProductResponse>> getProductBySkuCode(@PathVariable String skuCode)
     {
         log.info("ProductController::getProductBySkuCode {}", skuCode);
@@ -50,23 +50,6 @@ public class ProductController {
                 .build();
         
         log.info("ProductController::getProductBySkuCode {} response {}", skuCode, Mapper.jsonToString(productResponse));
-        
-        return new ResponseEntity<>(responseDTO, HttpStatus.OK);
-    }
-    
-    @GetMapping("/{id}")
-    public ResponseEntity<APIResponse<ProductResponse>> getProductById(@PathVariable Long id)
-    {
-        log.info("ProductController::getProductById {}", id);
-        ProductResponse productResponse = productServiceInterface.getProductById(id);
-        
-        APIResponse<ProductResponse> responseDTO = APIResponse
-                .<ProductResponse>builder()
-                .status(SUCCESS)
-                .results(productResponse)
-                .build();
-        
-        log.info("ProductController::getProductById {} response {}", id, Mapper.jsonToString(productResponse));
         
         return new ResponseEntity<>(responseDTO, HttpStatus.OK);
     }
@@ -88,15 +71,15 @@ public class ProductController {
         return ResponseEntity.status(HttpStatus.CREATED).body(responseDTO);
     }
     
-    @PutMapping("/{id}")
+    @PutMapping("/{skuCode}")
     public ResponseEntity<APIResponse<ProductResponse>> updateProduct(
-            @PathVariable Long id,
+            @PathVariable String skuCode,
             @Valid @RequestBody ProductRequest productRequest
     )
     {
         log.info("ProductController::updateProduct request body {}", Mapper.jsonToString(productRequest));
         
-        ProductResponse updatedProduct = productServiceInterface.updateProduct(id, productRequest);
+        ProductResponse updatedProduct = productServiceInterface.updateProduct(skuCode, productRequest);
         
         APIResponse<ProductResponse> responseDTO = APIResponse
                 .<ProductResponse>builder()
@@ -108,10 +91,17 @@ public class ProductController {
         return ResponseEntity.ok(responseDTO);
     }
     
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteProduct(@PathVariable Long id)
+    @DeleteMapping("/{skuCode}")
+    public ResponseEntity<APIResponse<ProductResponse>> deleteProduct(@PathVariable String skuCode)
     {
-        productServiceInterface.deleteProduct(id);
-        return ResponseEntity.noContent().build();
+        ProductResponse disabledProduct = productServiceInterface.disableProduct(skuCode);
+
+        APIResponse<ProductResponse> responseDTO = APIResponse
+                .<ProductResponse>builder()
+                .status(SUCCESS)
+                .results(disabledProduct)
+                .build();
+
+        return ResponseEntity.ok(responseDTO);
     }
 }

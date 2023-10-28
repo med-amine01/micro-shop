@@ -8,14 +8,12 @@ import java.util.List;
 
 public interface CouponServiceInterface {
     List<CouponResponseDTO> getCoupons() throws CouponServiceBusinessException;
-
-    CouponResponseDTO getCouponById(Long id) throws CouponServiceBusinessException;
-
+    
     CouponResponseDTO getCouponByCode(String code) throws CouponServiceBusinessException;
 
     CouponResponseDTO createCoupon(CouponRequestDTO couponRequestDTO);
 
-    CouponResponseDTO updateCoupon(Long id, CouponRequestDTO updatedCoupon) throws CouponServiceBusinessException;
+    CouponResponseDTO updateCoupon(String code, CouponRequestDTO updatedCoupon) throws CouponServiceBusinessException;
 
-    void deleteCoupon(Long id);
+    CouponResponseDTO disableCoupon(String code);
 }

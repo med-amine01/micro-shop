@@ -9,14 +9,12 @@ import java.util.List;
 public interface ProductServiceInterface {
     
     List<ProductResponse> getProducts() throws ProductServiceBusinessException;
-    
-    ProductResponse getProductById(Long id) throws ProductServiceBusinessException;
 
     ProductResponse getProductBySkuCode(String skuCode) throws ProductServiceBusinessException;
+
+    ProductResponse createProduct(ProductRequest productRequest) throws ProductServiceBusinessException;
     
-    ProductResponse createProduct(ProductRequest productRequest);
+    ProductResponse updateProduct(String skuCode, ProductRequest updatedProduct) throws ProductServiceBusinessException;
     
-    ProductResponse updateProduct(Long id, ProductRequest updatedProduct) throws ProductServiceBusinessException;
-    
-    void deleteProduct(Long id);
+    ProductResponse disableProduct(String skuCode) throws ProductServiceBusinessException;
 }

@@ -8,31 +8,27 @@ import de.tekup.couponservice.entity.Coupon;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class ValueMapper {
+public class Mapper {
 
-    // this class should not instantiated
+    // this class should not instantiate
     // All methods are static
-    private ValueMapper() {
-
-    }
+    private Mapper() {}
 
     public static Coupon toEntity(CouponRequestDTO couponRequestDTO) {
         Coupon coupon = new Coupon();
         coupon.setCode(couponRequestDTO.getCode());
         coupon.setDiscount(couponRequestDTO.getDiscount());
-        coupon.setExpirationDate(couponRequestDTO.getExpirationDate() + " 00:00:00");
+        coupon.setExpirationDate(couponRequestDTO.getExpirationDate());
 
         return coupon;
     }
 
     public static CouponResponseDTO toDto(Coupon coupon) {
         CouponResponseDTO couponResponseDTO = new CouponResponseDTO();
-        couponResponseDTO.setId(coupon.getId());
         couponResponseDTO.setCode(coupon.getCode());
         couponResponseDTO.setDiscount(coupon.getDiscount());
         couponResponseDTO.setExpirationDate(coupon.getExpirationDate());
-        couponResponseDTO.setCreatedAt(coupon.getCreatedAt());
-        couponResponseDTO.setUpdatedAt(coupon.getUpdatedAt());
+        couponResponseDTO.setEnabled(coupon.isEnabled());
 
         return couponResponseDTO;
     }

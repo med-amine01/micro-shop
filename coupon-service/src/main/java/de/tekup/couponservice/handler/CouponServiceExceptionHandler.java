@@ -17,9 +17,9 @@ import java.util.List;
 
 @RestControllerAdvice
 public class CouponServiceExceptionHandler {
-
+    
     private static final String FAILED = "FAILED";
-
+    
     // Bad Args exception handler
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
@@ -35,28 +35,24 @@ public class CouponServiceExceptionHandler {
         serviceResponse.setErrors(errors);
         return serviceResponse;
     }
-
-    // Business Coupon service exception handler
-    @ExceptionHandler(CouponServiceBusinessException.class)
-    public APIResponse<?> handleServiceException(CouponServiceBusinessException exception) {
-        APIResponse<?> serviceResponse = new APIResponse<>();
-        serviceResponse.setStatus(FAILED);
-        serviceResponse.setErrors(Collections.singletonList(new ErrorDTO("", exception.getMessage())));
-        return serviceResponse;
-    }
-
-    // Coupon already exists exception handler
+    
     @ExceptionHandler(CouponAlreadyExistsException.class)
     public APIResponse<?> handleCouponAlreadyExistsException(CouponAlreadyExistsException exception) {
-        APIResponse<?> serviceResponse = new APIResponse<>();
-        serviceResponse.setStatus(FAILED);
-        serviceResponse.setErrors(Collections.singletonList(new ErrorDTO("", exception.getMessage())));
-        return serviceResponse;
+        return getServiceResponse(exception);
     }
-
-    // Coupon Not Found exception handler
+    
     @ExceptionHandler(CouponNotFoundException.class)
     public APIResponse<?> handleCouponNotFoundException(CouponNotFoundException exception) {
+        return getServiceResponse(exception);
+    }
+    
+    
+    @ExceptionHandler(CouponServiceBusinessException.class)
+    public APIResponse<?> handleCouponServiceBusinessException(CouponServiceBusinessException exception) {
+        return getServiceResponse(exception);
+    }
+
+    private static APIResponse<?> getServiceResponse(Exception exception) {
         APIResponse<?> serviceResponse = new APIResponse<>();
         serviceResponse.setStatus(FAILED);
         serviceResponse.setErrors(Collections.singletonList(new ErrorDTO("", exception.getMessage())));
