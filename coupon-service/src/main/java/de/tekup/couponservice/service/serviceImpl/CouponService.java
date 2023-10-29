@@ -1,5 +1,6 @@
 package de.tekup.couponservice.service.serviceImpl;
 
+import de.tekup.couponservice.config.RabbitMqConfig;
 import de.tekup.couponservice.dto.CouponRequestDTO;
 import de.tekup.couponservice.dto.CouponResponseDTO;
 import de.tekup.couponservice.entity.Coupon;
@@ -13,8 +14,10 @@ import de.tekup.couponservice.service.CouponServiceInterface;
 import de.tekup.couponservice.util.Mapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -27,6 +30,10 @@ public class CouponService implements CouponServiceInterface {
     private final CouponRepository couponRepository;
 
     private final ApplicationEventPublisher eventPublisher;
+    
+    private final RabbitTemplate rabbitTemplate;
+    
+    private final BCryptPasswordEncoder encoder;
 
     @Override
     @Cacheable(value = "coupon")
@@ -50,7 +57,6 @@ public class CouponService implements CouponServiceInterface {
             throw new CouponServiceBusinessException("Exception occurred while fetching all coupons");
         }
     }
-    
 
     @Override
     @Cacheable(value = "coupon")
@@ -120,28 +126,48 @@ public class CouponService implements CouponServiceInterface {
                 throw new CouponAlreadyExistsException("Coupon already exists.");
             }
 
+            // Checking if nothing changed no need to update
+            CouponResponseDTO convertResponse = Mapper.toDto(Mapper.toEntity(updatedCoupon));
+            if (Mapper.toDto(existingCoupon).equals(convertResponse)) {
+                throw new CouponServiceBusinessException("No update needed, nothing changed.");
+            }
+
+            boolean flag = true;
             // In case that expiration date changed
             if (!updatedCoupon.getExpirationDate().equalsIgnoreCase(existingCoupon.getExpirationDate())) {
                 // Publish event to cancel previous task (old exp-date) and run the new updated task (new exp-date)
-                eventPublisher.publishEvent(new CouponUpdatedEvent(this, existingCoupon, updatedCoupon.getExpirationDate()));
+                eventPublisher.publishEvent(new CouponUpdatedEvent(
+                        this,
+                        existingCoupon,
+                        updatedCoupon.getExpirationDate()
+                ));
+                flag = false;
             }
 
             Coupon coupon = Mapper.toEntity(updatedCoupon);
             coupon.setId(existingCoupon.getId());
-            
             // Update the coupon and convert to response DTO
-            CouponResponseDTO couponResponseDTO = Mapper.toDto(couponRepository.save(coupon));
-            log.debug("CouponService::updateCoupon - Updated coupon: {}", Mapper.jsonToString(couponResponseDTO));
-            
-            return couponResponseDTO;
+            CouponResponseDTO couponResponse = Mapper.toDto(couponRepository.save(coupon));
+            log.debug("CouponService::updateCoupon - Updated coupon: {}", Mapper.jsonToString(couponResponse));
 
+            // If any other fields got changed : (code name || discount percentage)
+            if (flag) {
+                rabbitTemplate.convertAndSend(RabbitMqConfig.EXCHANGE, RabbitMqConfig.ROUTING_KEY, couponResponse);
+                log.info("pushing updated coupon to queue = {}", couponResponse);
+            }
+
+            return couponResponse;
         } catch (CouponNotFoundException exception) {
             log.error(exception.getMessage());
             throw exception;
-            
+
         } catch (CouponAlreadyExistsException exception) {
             log.error("Error updating the same provided coupon code");
             throw exception;
+
+        } catch (CouponServiceBusinessException exception) {
+            throw exception;
+
         } catch (Exception exception) {
             log.error("Exception occurred while updating coupon, Exception message: {}", exception.getMessage());
             throw new CouponServiceBusinessException("Exception occurred while updating coupon");
@@ -155,15 +181,27 @@ public class CouponService implements CouponServiceInterface {
                     .orElseThrow(() -> new CouponNotFoundException("Coupon with code " + code + " not found"));
             coupon.setEnabled(false);
 
-            return Mapper.toDto(couponRepository.save(coupon));
-            
+            // Disabled coupon
+            CouponResponseDTO couponResponse = Mapper.toDto(couponRepository.save(coupon));
+
+            // In case that coupon is disabled -> notify product service
+            rabbitTemplate.convertAndSend(RabbitMqConfig.EXCHANGE, RabbitMqConfig.ROUTING_KEY, couponResponse);
+            log.info("pushing disabled coupon to queue = {}", couponResponse);
+
+            return couponResponse;
         } catch (CouponNotFoundException exception) {
             log.error(exception.getMessage());
             throw exception;
 
         } catch (Exception exception) {
+            if (exception.getClass().getName().contains("CachingConnectionFactory")) {
+                log.error("Queue error occurred : " + exception.getMessage());
+                throw new CouponServiceBusinessException("Couldn't connect to rabbitMq");
+            }
+
             log.error("Exception occurred while disabling coupon, Exception message: {}", exception.getMessage());
             throw new CouponServiceBusinessException("Exception occurred while disabling a coupon");
         }
     }
+    
 }
