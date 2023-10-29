@@ -1,5 +1,6 @@
 package de.tekup.productservice.service;
 
+import de.tekup.productservice.dto.CouponResponse;
 import de.tekup.productservice.dto.ProductRequest;
 import de.tekup.productservice.dto.ProductResponse;
 import de.tekup.productservice.exception.ProductServiceBusinessException;
@@ -17,4 +18,6 @@ public interface ProductServiceInterface {
     ProductResponse updateProduct(String skuCode, ProductRequest updatedProduct) throws ProductServiceBusinessException;
     
     ProductResponse disableProduct(String skuCode) throws ProductServiceBusinessException;
+    
+    void updateProductsFromQueue(CouponResponse couponResponse);
 }
