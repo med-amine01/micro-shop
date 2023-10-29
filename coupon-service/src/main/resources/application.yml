@@ -3,3 +3,8 @@ spring:
     name: coupon-service
   profiles:
     active: dev
+
+rabbitmq:
+  queue: ${broker.coupon.queue}
+  exchange: ${broker.coupon.exchange}
+  routing-key: ${broker.coupon.routing-key}

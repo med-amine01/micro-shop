@@ -41,7 +41,7 @@ public class ProductService implements ProductServiceInterface {
     private final RabbitTemplate rabbitTemplate;
     
     //private final WebClient.Builder webClientBuilder;
-    
+
     @Override
     public List<ProductResponse> getProducts() throws ProductServiceBusinessException {
         try {
@@ -88,12 +88,10 @@ public class ProductService implements ProductServiceInterface {
             throw new ProductServiceBusinessException("Exception occurred while fetching product by SkuCode");
         }
     }
-    
+
     @Override
     public ProductResponse createProduct(ProductRequest productRequest) throws ProductServiceBusinessException {
         try {
-            log.info("ProductService::createProduct - STARTED.");
-            
             if (productRepository.existsByName(productRequest.getName())) {
                 throw new ProductAlreadyExistsException("Product with name " + productRequest.getName() + " already exists");
             }
@@ -104,52 +102,28 @@ public class ProductService implements ProductServiceInterface {
             if (null == product.getCouponCode()) {
                 product.setDiscountedPrice(null);
             } else {
-                // Retrieving coupon from coupon-service and map it to APIResponse
-                ResponseEntity<APIResponse<CouponResponse>> responseEntity = restTemplate
-                        .getRestTemplate()
-                        .exchange(COUPON_SERVICE_URL + "/" + productRequest.getCouponCode(),
-                                HttpMethod.GET,
-                                null,
-                                new ParameterizedTypeReference<>() {
-                                });
-                
-                //Getting coupon code from coupon-service
-                CouponResponse coupon = Mapper.getApiResponseData(responseEntity);
-                // If coupon is disabled
-                if (!coupon.isEnabled()) {
-                    throw new ProductServiceBusinessException("Coupon code expired");
-                }
-
-                // Apply discount (discountedPrice)
-                BigDecimal mainPrice = product.getPrice();
-                BigDecimal discountPercentage = coupon.getDiscount().divide(BigDecimal.valueOf(100));
-                BigDecimal discountedPrice = mainPrice.subtract(mainPrice.multiply(discountPercentage));
-
-                product.setDiscountedPrice(discountedPrice);
+                // Check for requested coupon
+                CouponResponse coupon = getCouponResponse(productRequest);
+                // Apply discount
+                applyDiscount(product, coupon);
             }
-            
-            // Saving product
+
+            // Save product
             Product persistedProduct = productRepository.save(product);
-            
+
             // Mapping to product to response
             ProductResponse productResponse = Mapper.toDto(persistedProduct);
             log.debug("ProductService::createProduct - product created : {}", Mapper.jsonToString(productResponse));
-            
+
             // Sending to rabbitMq
             rabbitTemplate.convertAndSend(RabbitMqConfig.EXCHANGE, RabbitMqConfig.ROUTING_KEY, productResponse);
-            log.info("ProductService::createProduct - product sent to QUEUE");
-            
-            log.info("ProductService::createProduct - ENDS.");
+            log.info("product created && sent to the queue");
+
             return productResponse;
-            
-        } catch (InvalidResponseException exception) {
+        } catch (ProductServiceBusinessException | InvalidResponseException | ProductAlreadyExistsException exception) {
             log.error(exception.getMessage());
             throw exception;
-            
-        } catch (ProductAlreadyExistsException exception) {
-            log.error(exception.getMessage());
-            throw exception;
-            
+
         } catch (Exception exception) {
             if (exception.getClass().getName().contains("CachingConnectionFactory")) {
                 throw new ProductServiceBusinessException("Couldn't connect to rabbitMq");
@@ -161,41 +135,49 @@ public class ProductService implements ProductServiceInterface {
     }
     
     @Override
-    public ProductResponse updateProduct(String skuCode, ProductRequest updatedProduct) throws ProductServiceBusinessException {
+    public ProductResponse updateProduct(String skuCode, ProductRequest productRequest) throws ProductServiceBusinessException {
         try {
-            log.info("ProductService::updateProduct - Started.");
-            
             // Fetch the existing product and update its properties
             Product existingProduct = productRepository.findBySkuCode(skuCode)
                     .orElseThrow(() -> new ProductNotFoundException("Product with SkuCode " + skuCode + " not found"));
-            
-            if (productRepository.existsBySkuCode(updatedProduct.getSkuCode()) &&
-                    !skuCode.equalsIgnoreCase(updatedProduct.getSkuCode())
+
+            if (productRepository.existsBySkuCode(productRequest.getSkuCode()) &&
+                    !skuCode.equalsIgnoreCase(productRequest.getSkuCode())
             ) {
                 throw new ProductAlreadyExistsException("Product already exists.");
             }
 
-            Product product = Mapper.toEntity(updatedProduct);
+            Product product = Mapper.toEntity(productRequest);
             product.setId(existingProduct.getId());
+
+            if (null == product.getCouponCode()) {
+                product.setDiscountedPrice(null);
+            } else {
+                // Check for requested coupon
+                CouponResponse coupon = getCouponResponse(productRequest);
+                // Apply discount
+                applyDiscount(product, coupon);
+            }
 
             // Update the product and convert to response DTO
             Product persistedProduct = productRepository.save(product);
             ProductResponse productResponse = Mapper.toDto(persistedProduct);
-            
+
             log.debug("ProductService::updateProduct - Updated product: {}", Mapper.jsonToString(productResponse));
-            log.info("ProductService::updateProduct - Completed for skuCode: {}", skuCode);
-            
+
             return productResponse;
-            
+        } catch (ProductAlreadyExistsException exception) {
+            log.error(exception.getMessage());
+            throw exception;
+
         } catch (Exception exception) {
             log.error("Exception occurred while updating product, Exception message: {}", exception.getMessage());
             throw new ProductServiceBusinessException("Exception occurred while updating product");
         }
     }
 
-    
     @Override
-    public ProductResponse disableProduct(String skuCode) throws ProductServiceBusinessException{
+    public ProductResponse disableProduct(String skuCode) throws ProductServiceBusinessException {
         log.info("ProductService::disableProduct - Starts.");
         
         try {
@@ -217,4 +199,56 @@ public class ProductService implements ProductServiceInterface {
             throw new ProductServiceBusinessException("Exception occurred while deleting a product");
         }
     }
+
+    @Override
+    public void updateProductsFromQueue(CouponResponse couponResponse) {
+        String couponCode = couponResponse.isEnabled() ? couponResponse.getCode() : null;
+        BigDecimal discount = couponResponse.isEnabled() ? couponResponse.getDiscount() : null;
+        
+        productRepository.findByCouponCode(couponResponse.getCode())
+            .forEach(product -> {
+                product.setCouponCode(couponCode);
+                if (discount != null) {
+                    applyDiscount(product,couponResponse);
+                } else {
+                    product.setDiscountedPrice(discount);
+                }
+                productRepository.save(product);
+            });
+    }
+
+    private CouponResponse getCouponResponse(ProductRequest productRequest) {
+        try {
+            // Retrieving coupon from coupon-service and map it to APIResponse
+            ResponseEntity<APIResponse<CouponResponse>> responseEntity = restTemplate
+                    .getRestTemplate()
+                    .exchange(COUPON_SERVICE_URL + "/" + productRequest.getCouponCode(),
+                            HttpMethod.GET,
+                            null,
+                            new ParameterizedTypeReference<>() {
+                            });
+            
+            //Getting coupon code from coupon-service
+            CouponResponse coupon = Mapper.getApiResponseData(responseEntity);
+            // If coupon is disabled
+            if (!coupon.isEnabled()) {
+                throw new ProductServiceBusinessException("Coupon code expired");
+            }
+
+            return coupon;
+        } catch (ProductServiceBusinessException exception) {
+            log.error(exception.getMessage());
+            throw exception;
+        }
+    }
+
+    private static void applyDiscount(Product product, CouponResponse coupon) {
+        // Apply discount (discountedPrice)
+        BigDecimal mainPrice = product.getPrice();
+        BigDecimal discountPercentage = coupon.getDiscount().divide(BigDecimal.valueOf(100));
+        BigDecimal discountedPrice = mainPrice.subtract(mainPrice.multiply(discountPercentage));
+        
+        product.setDiscountedPrice(discountedPrice);
+    }
+
 }
