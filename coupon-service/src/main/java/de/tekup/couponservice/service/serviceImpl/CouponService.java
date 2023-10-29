@@ -3,25 +3,30 @@ package de.tekup.couponservice.service.serviceImpl;
 import de.tekup.couponservice.dto.CouponRequestDTO;
 import de.tekup.couponservice.dto.CouponResponseDTO;
 import de.tekup.couponservice.entity.Coupon;
+import de.tekup.couponservice.event.CouponCreatedEvent;
+import de.tekup.couponservice.event.CouponUpdatedEvent;
 import de.tekup.couponservice.exception.CouponAlreadyExistsException;
 import de.tekup.couponservice.exception.CouponNotFoundException;
 import de.tekup.couponservice.exception.CouponServiceBusinessException;
 import de.tekup.couponservice.repository.CouponRepository;
 import de.tekup.couponservice.service.CouponServiceInterface;
 import de.tekup.couponservice.util.Mapper;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 @Slf4j
 public class CouponService implements CouponServiceInterface {
 
-    private CouponRepository couponRepository;
+    private final CouponRepository couponRepository;
+
+    private final ApplicationEventPublisher eventPublisher;
 
     @Override
     @Cacheable(value = "coupon")
@@ -76,7 +81,6 @@ public class CouponService implements CouponServiceInterface {
     @Override
     public CouponResponseDTO createCoupon(CouponRequestDTO couponRequestDTO) {
         try {
-            log.info("CouponService::createCoupon - STARTED.");
 
             if (couponRepository.existsByCode(couponRequestDTO.getCode())) {
                 throw new CouponAlreadyExistsException("Coupon with code " + couponRequestDTO.getCode() + " already exists");
@@ -87,8 +91,8 @@ public class CouponService implements CouponServiceInterface {
 
             CouponResponseDTO couponResponseDTO = Mapper.toDto(persistedCoupon);
             log.debug("CouponService::createCoupon - coupon created : {}", Mapper.jsonToString(couponResponseDTO));
-
-            log.info("CouponService::createCoupon - ENDS.");
+            
+            eventPublisher.publishEvent(new CouponCreatedEvent(this, couponResponseDTO));
             return couponResponseDTO;
 
         } catch (CouponAlreadyExistsException exception) {
@@ -116,14 +120,19 @@ public class CouponService implements CouponServiceInterface {
                 throw new CouponAlreadyExistsException("Coupon already exists.");
             }
 
+            // In case that expiration date changed
+            if (!updatedCoupon.getExpirationDate().equalsIgnoreCase(existingCoupon.getExpirationDate())) {
+                // Publish event to cancel previous task (old exp-date) and run the new updated task (new exp-date)
+                eventPublisher.publishEvent(new CouponUpdatedEvent(this, existingCoupon, updatedCoupon.getExpirationDate()));
+            }
+
             Coupon coupon = Mapper.toEntity(updatedCoupon);
             coupon.setId(existingCoupon.getId());
-
+            
             // Update the coupon and convert to response DTO
             CouponResponseDTO couponResponseDTO = Mapper.toDto(couponRepository.save(coupon));
-
             log.debug("CouponService::updateCoupon - Updated coupon: {}", Mapper.jsonToString(couponResponseDTO));
-
+            
             return couponResponseDTO;
 
         } catch (CouponNotFoundException exception) {
