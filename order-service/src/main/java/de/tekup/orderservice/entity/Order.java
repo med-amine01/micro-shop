@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 import javax.persistence.*;
+import java.math.BigDecimal;
 import java.util.List;
 
 @Entity
@@ -14,7 +15,9 @@ import java.util.List;
 public class Order extends AbstractEntity {
     
     private String orderNumber;
-    private float totalPrice;
+
+    private BigDecimal totalPrice;
+
     @Enumerated(EnumType.STRING)
     private OrderStatus orderStatus;
     

@@ -22,7 +22,7 @@ public class RabbitMqListener {
         try {
             productServiceInterface.updateProductsFromQueue(coupon);
             log.info("coupon fetched from message queue and updated product");
-            
+
         } catch (Exception exception) {
             log.error("Exception occurred while fetching product from queue, Exception message: {}", exception.getMessage());
             throw new ProductServiceBusinessException(exception.getMessage());

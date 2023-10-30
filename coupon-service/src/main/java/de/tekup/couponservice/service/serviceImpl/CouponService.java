@@ -17,7 +17,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -32,8 +31,6 @@ public class CouponService implements CouponServiceInterface {
     private final ApplicationEventPublisher eventPublisher;
     
     private final RabbitTemplate rabbitTemplate;
-    
-    private final BCryptPasswordEncoder encoder;
 
     @Override
     @Cacheable(value = "coupon")

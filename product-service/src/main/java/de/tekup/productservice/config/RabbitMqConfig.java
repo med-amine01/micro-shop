@@ -10,6 +10,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import javax.annotation.PostConstruct;
+
 @Configuration
 @Data
 public class RabbitMqConfig {
@@ -26,6 +28,17 @@ public class RabbitMqConfig {
     public static String QUEUE;
     public static String EXCHANGE;
     public static String ROUTING_KEY;
+    
+    private AmqpAdmin amqpAdmin;
+
+    public RabbitMqConfig(AmqpAdmin amqpAdmin) {
+        this.amqpAdmin = amqpAdmin;
+    }
+    
+    @PostConstruct
+    public void initializeQueue() {
+        amqpAdmin.declareQueue(new Queue(QUEUE, true));
+    }
     
     @Value("${rabbitmq.queue}")
     public void setQueue(String queue) {
