@@ -22,11 +22,16 @@ public class OrderController {
     private final OrderService orderService;
     
     @PostMapping
-    public ResponseEntity<APIResponse<OrderResponse>> createProduct(@RequestBody @Valid OrderRequest orderRequest) {
+    public ResponseEntity<APIResponse<OrderResponse>> createProduct
+    (
+        @RequestBody @Valid OrderRequest orderRequest,
+        @RequestParam(required = false) String coupon
+    )
+    {
         APIResponse<OrderResponse> responseDTO = APIResponse
                 .<OrderResponse>builder()
                 .status(SUCCESS)
-                .results(orderService.placeOrder(orderRequest))
+                .results(orderService.placeOrder(orderRequest, coupon))
                 .build();
         
         return ResponseEntity.status(HttpStatus.CREATED).body(responseDTO);

@@ -12,6 +12,8 @@ import de.tekup.orderservice.exception.InvalidResponseException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -80,11 +82,14 @@ public class Mapper {
         return orderResponse;
     }
     
-    public static float formatFloatDecimal(float value)
-    {
+    
+    public static BigDecimal formatBigDecimalDecimal(BigDecimal value) {
         DecimalFormat decimalFormat = new DecimalFormat("0.00");
+        decimalFormat.setRoundingMode(RoundingMode.HALF_UP);
         
-        return Float.parseFloat(decimalFormat.format(value));
+        String formattedValue = decimalFormat.format(value);
+        
+        return new BigDecimal(formattedValue);
     }
     
     public static String jsonToString(Object object) {

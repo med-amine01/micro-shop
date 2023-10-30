@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Data
@@ -13,5 +14,5 @@ public class OrderResponse {
     private String orderNumber;
     private String orderStatus;
     private List<OrderLineItemsResponse> items;
-    private float totalPrice;
+    private BigDecimal totalPrice;
 }

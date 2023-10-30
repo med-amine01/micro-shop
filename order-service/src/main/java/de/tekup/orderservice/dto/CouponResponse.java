@@ -6,13 +6,12 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 
-
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class OrderLineItemsResponse {
-    private String skuCode;
-    private BigDecimal unitePrice;
-    private Integer quantity;
-    private BigDecimal price;
+public class CouponResponse {
+    private String code;
+    private BigDecimal discount;
+    private String expirationDate;
+    private boolean enabled;
 }
