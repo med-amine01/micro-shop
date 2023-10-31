@@ -2,8 +2,9 @@ package de.tekup.couponservice.util;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import de.tekup.couponservice.dto.CouponRequestDTO;
-import de.tekup.couponservice.dto.CouponResponseDTO;
+import de.tekup.couponservice.dto.CouponRequest;
+import de.tekup.couponservice.dto.CouponRequestUpdate;
+import de.tekup.couponservice.dto.CouponResponse;
 import de.tekup.couponservice.entity.Coupon;
 import lombok.extern.slf4j.Slf4j;
 
@@ -14,23 +15,35 @@ public class Mapper {
     // All methods are static
     private Mapper() {}
 
-    public static Coupon toEntity(CouponRequestDTO couponRequestDTO) {
+    public static Coupon toEntity(CouponRequest couponRequest) {
         Coupon coupon = new Coupon();
-        coupon.setCode(couponRequestDTO.getCode());
-        coupon.setDiscount(couponRequestDTO.getDiscount());
-        coupon.setExpirationDate(couponRequestDTO.getExpirationDate());
+        coupon.setName(couponRequest.getName().trim());
+        coupon.setDiscount(couponRequest.getDiscount());
+        coupon.setExpirationDate(couponRequest.getExpirationDate());
 
         return coupon;
     }
 
-    public static CouponResponseDTO toDto(Coupon coupon) {
-        CouponResponseDTO couponResponseDTO = new CouponResponseDTO();
-        couponResponseDTO.setCode(coupon.getCode());
-        couponResponseDTO.setDiscount(coupon.getDiscount());
-        couponResponseDTO.setExpirationDate(coupon.getExpirationDate());
-        couponResponseDTO.setEnabled(coupon.isEnabled());
+    public static Coupon toEntity(CouponRequestUpdate requestUpdate, Coupon couponInDb) {
+        Coupon coupon = new Coupon();
+        coupon.setCode(couponInDb.getCode());
+        String name = requestUpdate.getName() != null ? requestUpdate.getName() : couponInDb.getName();
+        coupon.setName(name);
+        coupon.setDiscount(requestUpdate.getDiscount());
+        coupon.setExpirationDate(requestUpdate.getExpirationDate());
+        
+        return coupon;
+    }
 
-        return couponResponseDTO;
+    public static CouponResponse toDto(Coupon coupon) {
+        CouponResponse couponResponse = new CouponResponse();
+        couponResponse.setCode(coupon.getCode());
+        couponResponse.setName(coupon.getName());
+        couponResponse.setDiscount(coupon.getDiscount());
+        couponResponse.setExpirationDate(coupon.getExpirationDate());
+        couponResponse.setEnabled(coupon.isEnabled());
+
+        return couponResponse;
     }
 
     public static String jsonToString(Object object) {

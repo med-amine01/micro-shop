@@ -16,6 +16,8 @@ public class Coupon extends AbstractEntity {
     @Column(unique = true)
     private String code;
 
+    private String name;
+
     private BigDecimal discount;
 
     @JsonFormat(pattern = "dd-MM-yyyy HH:mm:ss")

@@ -12,8 +12,9 @@ import java.util.Objects;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class CouponResponseDTO {
+public class CouponResponse {
     private String code;
+    private String name;
     private BigDecimal discount;
     private String expirationDate;
     private boolean enabled;
@@ -23,10 +24,10 @@ public class CouponResponseDTO {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         
-        CouponResponseDTO other = (CouponResponseDTO) o;
+        CouponResponse other = (CouponResponse) o;
         
-        // Compare code and expirationDate as before
-        if (!Objects.equals(code, other.code)) return false;
+        // Compare name and expirationDate as before
+        if (!Objects.equals(name, other.name)) return false;
         if (!Objects.equals(expirationDate, other.expirationDate)) return false;
 
         // Compare discount with 2 decimal places

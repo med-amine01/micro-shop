@@ -1,8 +1,9 @@
 package de.tekup.couponservice.service.serviceImpl;
 
 import de.tekup.couponservice.config.RabbitMqConfig;
-import de.tekup.couponservice.dto.CouponRequestDTO;
-import de.tekup.couponservice.dto.CouponResponseDTO;
+import de.tekup.couponservice.dto.CouponRequest;
+import de.tekup.couponservice.dto.CouponRequestUpdate;
+import de.tekup.couponservice.dto.CouponResponse;
 import de.tekup.couponservice.entity.Coupon;
 import de.tekup.couponservice.event.CouponCreatedEvent;
 import de.tekup.couponservice.event.CouponUpdatedEvent;
@@ -19,7 +20,9 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -34,20 +37,20 @@ public class CouponService implements CouponServiceInterface {
 
     @Override
     @Cacheable(value = "coupon")
-    public List<CouponResponseDTO> getCoupons() throws CouponServiceBusinessException {
+    public List<CouponResponse> getCoupons() throws CouponServiceBusinessException {
         try {
             log.info("CouponService::getCoupons - Fetching Started.");
 
             List<Coupon> coupons = couponRepository.findAll();
 
-            List<CouponResponseDTO> couponResponseDTOS = coupons.stream()
+            List<CouponResponse> couponResponses = coupons.stream()
                     .map(Mapper::toDto)
                     .toList();
 
-            log.info("CouponService::getCoupons - Fetched {} coupons", couponResponseDTOS.size());
+            log.info("CouponService::getCoupons - Fetched {} coupons", couponResponses.size());
 
             log.info("CouponService::getCoupons - Fetching Ends.");
-            return couponResponseDTOS;
+            return couponResponses;
 
         } catch (Exception exception) {
             log.error("Exception occurred while retrieving coupons, Exception message: {}", exception.getMessage());
@@ -57,19 +60,19 @@ public class CouponService implements CouponServiceInterface {
 
     @Override
     @Cacheable(value = "coupon")
-    public CouponResponseDTO getCouponByCode(String code) throws CouponServiceBusinessException {
+    public CouponResponse getCouponByCode(String code) throws CouponServiceBusinessException {
         try {
             log.info("CouponService::getCouponByCode - Fetching Started.");
 
             Coupon coupon = couponRepository.findByCode(code)
                     .orElseThrow(() -> new CouponNotFoundException("Coupon with code " + code + " not found"));
             
-            CouponResponseDTO couponResponseDTO = Mapper.toDto(coupon);
+            CouponResponse couponResponse = Mapper.toDto(coupon);
 
-            log.debug("CouponService::getCouponByCode - Coupon retrieved by code: {} {}", code, Mapper.jsonToString(couponResponseDTO));
+            log.debug("CouponService::getCouponByCode - Coupon retrieved by code: {} {}", code, Mapper.jsonToString(couponResponse));
 
             log.info("CouponService::getCouponByCode - Fetching Ends.");
-            return couponResponseDTO;
+            return couponResponse;
 
         } catch (CouponNotFoundException exception) {
             log.error(exception.getMessage());
@@ -82,22 +85,22 @@ public class CouponService implements CouponServiceInterface {
     }
 
     @Override
-    public CouponResponseDTO createCoupon(CouponRequestDTO couponRequestDTO) {
+    public CouponResponse createCoupon(CouponRequest couponRequest) {
         try {
+            // Map it to entity and save it
+            Coupon coupon = Mapper.toEntity(couponRequest);
+            // Generate unique coupon code based on "name" and "discount"
+            coupon.setCode(generateCouponCode(coupon.getName(), coupon.getDiscount()));
 
-            if (couponRepository.existsByCode(couponRequestDTO.getCode())) {
-                throw new CouponAlreadyExistsException("Coupon with code " + couponRequestDTO.getCode() + " already exists");
-            }
-
-            Coupon coupon = Mapper.toEntity(couponRequestDTO);
             Coupon persistedCoupon = couponRepository.save(coupon);
 
-            CouponResponseDTO couponResponseDTO = Mapper.toDto(persistedCoupon);
-            log.debug("CouponService::createCoupon - coupon created : {}", Mapper.jsonToString(couponResponseDTO));
+            CouponResponse couponResponse = Mapper.toDto(persistedCoupon);
+            log.debug("Coupon created : {}", Mapper.jsonToString(couponResponse));
             
-            eventPublisher.publishEvent(new CouponCreatedEvent(this, couponResponseDTO));
-            return couponResponseDTO;
+            // Notify event scheduler to take expiration date and set it to scheduler
+            eventPublisher.publishEvent(new CouponCreatedEvent(this, couponResponse));
 
+            return couponResponse;
         } catch (CouponAlreadyExistsException exception) {
             log.error(exception.getMessage());
             throw exception;
@@ -109,26 +112,19 @@ public class CouponService implements CouponServiceInterface {
     }
 
     @Override
-    public CouponResponseDTO updateCoupon(String code, CouponRequestDTO updatedCoupon) throws CouponServiceBusinessException {
+    public CouponResponse updateCoupon(String code, CouponRequestUpdate updatedCoupon) throws CouponServiceBusinessException {
         try {
-            log.info("CouponService::updateCoupon - Started.");
-            
-            // Fetch the existing coupon and update its properties
+            // Fetch the existing coupon by code
             Coupon existingCoupon = couponRepository.findByCode(code)
                     .orElseThrow(() -> new CouponNotFoundException("Coupon with code " + code + " not found"));
 
-            if (couponRepository.existsByCode(updatedCoupon.getCode()) &&
-                !code.equalsIgnoreCase(updatedCoupon.getCode())
-            ) {
-                throw new CouponAlreadyExistsException("Coupon already exists.");
-            }
-
             // Checking if nothing changed no need to update
-            CouponResponseDTO convertResponse = Mapper.toDto(Mapper.toEntity(updatedCoupon));
+            CouponResponse convertResponse = Mapper.toDto(Mapper.toEntity(updatedCoupon, existingCoupon));
             if (Mapper.toDto(existingCoupon).equals(convertResponse)) {
                 throw new CouponServiceBusinessException("No update needed, nothing changed.");
             }
 
+            // This flag will let us know if discount percentage changed or not
             boolean flag = true;
             // In case that expiration date changed
             if (!updatedCoupon.getExpirationDate().equalsIgnoreCase(existingCoupon.getExpirationDate())) {
@@ -141,13 +137,14 @@ public class CouponService implements CouponServiceInterface {
                 flag = false;
             }
 
-            Coupon coupon = Mapper.toEntity(updatedCoupon);
+            Coupon coupon = Mapper.toEntity(updatedCoupon, existingCoupon);
             coupon.setId(existingCoupon.getId());
+
             // Update the coupon and convert to response DTO
-            CouponResponseDTO couponResponse = Mapper.toDto(couponRepository.save(coupon));
+            CouponResponse couponResponse = Mapper.toDto(couponRepository.save(coupon));
             log.debug("CouponService::updateCoupon - Updated coupon: {}", Mapper.jsonToString(couponResponse));
 
-            // If any other fields got changed : (code name || discount percentage)
+            // Discount percentage changed
             if (flag) {
                 rabbitTemplate.convertAndSend(RabbitMqConfig.EXCHANGE, RabbitMqConfig.ROUTING_KEY, couponResponse);
                 log.info("pushing updated coupon to queue = {}", couponResponse);
@@ -172,14 +169,14 @@ public class CouponService implements CouponServiceInterface {
     }
 
     @Override
-    public CouponResponseDTO disableCoupon(String code) {
+    public CouponResponse disableCoupon(String code) {
         try {
             Coupon coupon = couponRepository.findByCode(code)
                     .orElseThrow(() -> new CouponNotFoundException("Coupon with code " + code + " not found"));
             coupon.setEnabled(false);
 
-            // Disabled coupon
-            CouponResponseDTO couponResponse = Mapper.toDto(couponRepository.save(coupon));
+            // Disable coupon
+            CouponResponse couponResponse = Mapper.toDto(couponRepository.save(coupon));
 
             // In case that coupon is disabled -> notify product service
             rabbitTemplate.convertAndSend(RabbitMqConfig.EXCHANGE, RabbitMqConfig.ROUTING_KEY, couponResponse);
@@ -200,5 +197,14 @@ public class CouponService implements CouponServiceInterface {
             throw new CouponServiceBusinessException("Exception occurred while disabling a coupon");
         }
     }
-    
+
+    private String generateCouponCode(String name, BigDecimal discount) {
+        String discountString = discount.setScale(0, BigDecimal.ROUND_DOWN).toString();
+        String randomUUID = UUID.randomUUID().toString().substring(0, 4);
+        
+        return name
+                .toUpperCase()
+                .replace(" ", "")
+                .concat("-" + discountString + "-" + randomUUID);
+    }
 }
