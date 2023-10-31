@@ -25,6 +25,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -202,19 +203,16 @@ public class ProductService implements ProductServiceInterface {
 
     @Override
     public void updateProductsFromQueue(CouponResponse couponResponse) {
-        String couponCode = couponResponse.isEnabled() ? couponResponse.getCode() : null;
-        BigDecimal discount = couponResponse.isEnabled() ? couponResponse.getDiscount() : null;
-        
-        productRepository.findByCouponCode(couponResponse.getCode())
-            .forEach(product -> {
-                product.setCouponCode(couponCode);
-                if (discount != null) {
-                    applyDiscount(product,couponResponse);
-                } else {
-                    product.setDiscountedPrice(discount);
-                }
-                productRepository.save(product);
-            });
+        Optional<Product> products = productRepository.findByCouponCode(couponResponse.getCode());
+        products.ifPresent(product -> {
+            if (!couponResponse.isEnabled()) {
+                product.setDiscountedPrice(null);
+                product.setCouponCode(null);
+            } else {
+                applyDiscount(product, couponResponse);
+            }
+            productRepository.save(product);
+        });
     }
 
     private CouponResponse getCouponResponse(ProductRequest productRequest) {

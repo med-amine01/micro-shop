@@ -35,11 +35,6 @@ public class RabbitMqConfig {
         this.amqpAdmin = amqpAdmin;
     }
     
-    @PostConstruct
-    public void initializeQueue() {
-        amqpAdmin.declareQueue(new Queue(QUEUE, true));
-    }
-    
     @Value("${rabbitmq.queue}")
     public void setQueue(String queue) {
         RabbitMqConfig.QUEUE = queue;
@@ -55,6 +50,11 @@ public class RabbitMqConfig {
         RabbitMqConfig.ROUTING_KEY = routingKey;
     }
     
+    @Bean
+    public void initializeQueue() {
+        amqpAdmin.declareQueue(queue());
+    }
+
     @Bean
     public Queue queue() {
         return new Queue(queue);

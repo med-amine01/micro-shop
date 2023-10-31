@@ -1,6 +1,6 @@
 package de.tekup.couponservice.event;
 
-import de.tekup.couponservice.dto.CouponResponseDTO;
+import de.tekup.couponservice.dto.CouponResponse;
 import de.tekup.couponservice.service.serviceImpl.CouponSchedulerService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,7 +16,7 @@ public class CouponCreatedEventListener implements ApplicationListener<CouponCre
     
     @Override
     public void onApplicationEvent(CouponCreatedEvent event) {
-        CouponResponseDTO coupon = event.getCouponResponse();
+        CouponResponse coupon = event.getCouponResponse();
         couponSchedulerService.add2ExpirationDateMap(coupon.getCode(), coupon.getExpirationDate());
         couponSchedulerService.prepare2ExecuteTasks();
     }
