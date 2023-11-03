@@ -10,7 +10,7 @@ import java.util.List;
 
 public interface ProductServiceInterface {
     
-    List<ProductResponse> getProducts() throws ProductServiceBusinessException;
+    List<ProductResponse> getProducts(boolean enabled) throws ProductServiceBusinessException;
 
     ProductResponse getProductBySkuCode(String skuCode) throws ProductServiceBusinessException;
 

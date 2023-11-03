@@ -43,14 +43,16 @@ public class ProductService implements ProductServiceInterface {
     //private final WebClient.Builder webClientBuilder;
 
     @Override
-    public List<ProductResponse> getProducts() throws ProductServiceBusinessException {
+    public List<ProductResponse> getProducts(boolean enabled) throws ProductServiceBusinessException {
         try {
-            List<Product> products = productRepository.findAll();
-            
-            List<ProductResponse> productResponses = products.stream()
+            //List<Product> products = productRepository.findAllByEnabled(enabled);
+            List<Product> products = productRepository.findAllByEnabledTrueOrEnabledOrderByIdDesc(enabled);
+
+            List<ProductResponse> productResponses = products
+                    .stream()
                     .map(Mapper::toDto)
                     .toList();
-            
+
             log.info("ProductService::getProducts - Fetched {} products", productResponses.size());
 
             return productResponses;
