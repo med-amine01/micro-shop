@@ -23,10 +23,13 @@ public class ProductController {
     public static final String SUCCESS = "SUCCESS";
     private final ProductServiceInterface productServiceInterface;
 
-    @GetMapping
-    public ResponseEntity<APIResponse<List<ProductResponse>>> getAllProducts()
+    @GetMapping()
+    public ResponseEntity<APIResponse<List<ProductResponse>>> getAllProducts
+    (
+            @RequestParam(required = false, defaultValue = "true") boolean enabled
+    )
     {
-        List<ProductResponse> products = productServiceInterface.getProducts();
+        List<ProductResponse> products = productServiceInterface.getProducts(enabled);
 
         APIResponse<List<ProductResponse>> responseDTO = APIResponse
                 .<List<ProductResponse>>builder()
