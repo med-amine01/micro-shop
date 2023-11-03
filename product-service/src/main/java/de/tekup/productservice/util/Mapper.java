@@ -4,11 +4,14 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.tekup.productservice.dto.APIResponse;
 import de.tekup.productservice.dto.ProductRequest;
+import de.tekup.productservice.dto.ProductRequestUpdate;
 import de.tekup.productservice.dto.ProductResponse;
 import de.tekup.productservice.entity.Product;
 import de.tekup.productservice.exception.InvalidResponseException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+
+import java.math.BigDecimal;
 
 @Slf4j
 public class Mapper {
@@ -21,11 +24,31 @@ public class Mapper {
     
     public static Product toEntity(ProductRequest productRequest) {
         Product product = new Product();
-        product.setSkuCode(productRequest.getSkuCode());
         product.setName(productRequest.getName());
         product.setCouponCode(productRequest.getCouponCode());
         product.setDescription(productRequest.getDescription());
         product.setPrice(productRequest.getPrice());
+
+        return product;
+    }
+
+    public static Product toEntity(ProductRequestUpdate requestUpdate, Product productInDb) {
+        Product product = new Product();
+        product.setSkuCode(productInDb.getSkuCode());
+
+        String name = requestUpdate.getName() != null ? requestUpdate.getName() : productInDb.getName();
+        product.setName(name);
+
+        // Check if request code is present in update the code in Db ELSE keep the Db
+        String couponCode = requestUpdate.getCouponCode() != null ? requestUpdate.getCouponCode() : productInDb.getCouponCode();
+        product.setCouponCode(couponCode);
+
+        BigDecimal price = requestUpdate.getPrice() != null ? requestUpdate.getPrice() : productInDb.getPrice();
+        product.setPrice(price);
+
+        // Check if request desc is present in update the desc in Db ELSE keep the Db desc
+        String description = requestUpdate.getDescription() != null ? requestUpdate.getDescription() : productInDb.getDescription();
+        product.setDescription(description);
 
         return product;
     }
@@ -50,6 +73,7 @@ public class Mapper {
         }
         return null;
     }
+
     public static <T> T getApiResponseData(ResponseEntity<APIResponse<T>> responseEntity) {
         APIResponse<T> apiResponse = responseEntity.getBody();
         
@@ -62,5 +86,4 @@ public class Mapper {
         
         return apiResponse != null ? apiResponse.getResults() : null;
     }
-    
 }

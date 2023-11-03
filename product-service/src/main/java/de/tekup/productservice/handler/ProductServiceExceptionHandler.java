@@ -42,40 +42,31 @@ public class ProductServiceExceptionHandler {
     // Business Product service exception handler
     @ExceptionHandler(ProductServiceBusinessException.class)
     public APIResponse<?> handleServiceException(ProductServiceBusinessException exception) {
-        APIResponse<?> serviceResponse = new APIResponse<>();
-        serviceResponse.setStatus(FAILED);
-        serviceResponse.setErrors(Collections.singletonList(new ErrorDTO("", exception.getMessage())));
-        
-        return serviceResponse;
+        return getServiceResponse(exception);
     }
     
     // Product Already Exists exception handler
     @ExceptionHandler(ProductAlreadyExistsException.class)
     public APIResponse<?> handleProductAlreadyExistsException(ProductAlreadyExistsException exception) {
-        APIResponse<?> serviceResponse = new APIResponse<>();
-        serviceResponse.setStatus(FAILED);
-        serviceResponse.setErrors(Collections.singletonList(new ErrorDTO("", exception.getMessage())));
-        
-        return serviceResponse;
+        return getServiceResponse(exception);
     }
     
     // Product Not Found exception handler
     @ExceptionHandler(ProductNotFoundException.class)
     public APIResponse<?> handleProductNotFoundException(ProductNotFoundException exception) {
-        APIResponse<?> serviceResponse = new APIResponse<>();
-        serviceResponse.setStatus(FAILED);
-        serviceResponse.setErrors(Collections.singletonList(new ErrorDTO("", exception.getMessage())));
-        
-        return serviceResponse;
+        return getServiceResponse(exception);
     }
     
     // Business Product service exception handler
     @ExceptionHandler(InvalidResponseException.class)
     public APIResponse<?> handleMicroserviceInvalidResponseException(InvalidResponseException exception) {
+        return getServiceResponse(exception);
+    }
+
+    private static APIResponse<?> getServiceResponse(Exception exception) {
         APIResponse<?> serviceResponse = new APIResponse<>();
         serviceResponse.setStatus(FAILED);
         serviceResponse.setErrors(Collections.singletonList(new ErrorDTO("", exception.getMessage())));
-        
         return serviceResponse;
     }
 }

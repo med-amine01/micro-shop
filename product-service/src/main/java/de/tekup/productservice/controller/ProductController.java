@@ -2,6 +2,7 @@ package de.tekup.productservice.controller;
 
 import de.tekup.productservice.dto.APIResponse;
 import de.tekup.productservice.dto.ProductRequest;
+import de.tekup.productservice.dto.ProductRequestUpdate;
 import de.tekup.productservice.dto.ProductResponse;
 import de.tekup.productservice.service.ProductServiceInterface;
 import de.tekup.productservice.util.Mapper;
@@ -21,18 +22,18 @@ import java.util.List;
 public class ProductController {
     public static final String SUCCESS = "SUCCESS";
     private final ProductServiceInterface productServiceInterface;
-    
+
     @GetMapping
     public ResponseEntity<APIResponse<List<ProductResponse>>> getAllProducts()
     {
         List<ProductResponse> products = productServiceInterface.getProducts();
-        
+
         APIResponse<List<ProductResponse>> responseDTO = APIResponse
                 .<List<ProductResponse>>builder()
                 .status(SUCCESS)
                 .results(products)
                 .build();
-        
+
         log.info("ProductController::getAllProducts response {}", Mapper.jsonToString(responseDTO));
         return new ResponseEntity<>(responseDTO, HttpStatus.OK);
     }
@@ -42,7 +43,7 @@ public class ProductController {
     {
         log.info("ProductController::getProductBySkuCode {}", skuCode);
         ProductResponse productResponse = productServiceInterface.getProductBySkuCode(skuCode);
-        
+
         APIResponse<ProductResponse> responseDTO = APIResponse
                 .<ProductResponse>builder()
                 .status(SUCCESS)
@@ -50,7 +51,7 @@ public class ProductController {
                 .build();
         
         log.info("ProductController::getProductBySkuCode {} response {}", skuCode, Mapper.jsonToString(productResponse));
-        
+
         return new ResponseEntity<>(responseDTO, HttpStatus.OK);
     }
     
@@ -58,39 +59,39 @@ public class ProductController {
     public ResponseEntity<APIResponse<ProductResponse>> createProduct(@RequestBody @Valid ProductRequest productRequest)
     {
         log.info("ProductController::createProduct request body {}", Mapper.jsonToString(productRequest));
-        
+
         ProductResponse createdProduct = productServiceInterface.createProduct(productRequest);
-        
+
         APIResponse<ProductResponse> responseDTO = APIResponse
                 .<ProductResponse>builder()
                 .status(SUCCESS)
                 .results(createdProduct)
                 .build();
-        
+
         log.info("ProductController::createProduct response {}", Mapper.jsonToString(responseDTO));
         return ResponseEntity.status(HttpStatus.CREATED).body(responseDTO);
     }
-    
+
     @PutMapping("/{skuCode}")
     public ResponseEntity<APIResponse<ProductResponse>> updateProduct(
             @PathVariable String skuCode,
-            @Valid @RequestBody ProductRequest productRequest
+            @Valid @RequestBody ProductRequestUpdate productRequest
     )
     {
         log.info("ProductController::updateProduct request body {}", Mapper.jsonToString(productRequest));
-        
+
         ProductResponse updatedProduct = productServiceInterface.updateProduct(skuCode, productRequest);
-        
+
         APIResponse<ProductResponse> responseDTO = APIResponse
                 .<ProductResponse>builder()
                 .status(SUCCESS)
                 .results(updatedProduct)
                 .build();
-        
+
         log.info("ProductController::updateProduct response {}", Mapper.jsonToString(responseDTO));
         return ResponseEntity.ok(responseDTO);
     }
-    
+
     @DeleteMapping("/{skuCode}")
     public ResponseEntity<APIResponse<ProductResponse>> deleteProduct(@PathVariable String skuCode)
     {

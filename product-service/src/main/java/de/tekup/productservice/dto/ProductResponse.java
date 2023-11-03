@@ -5,6 +5,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.Objects;
 
 @Data
 @AllArgsConstructor
@@ -16,4 +18,16 @@ public class ProductResponse {
     private String description;
     private BigDecimal price;
     private BigDecimal discountedPrice;
+
+    @Override
+    public boolean equals(Object object) {
+        if (this == object) return true;
+        if (object == null || getClass() != object.getClass()) return false;
+        ProductResponse that = (ProductResponse) object;
+        return Objects.equals(name, that.name) &&
+                Objects.equals(couponCode, that.couponCode) &&
+                Objects.equals(description, that.description) &&
+                Objects.equals(price.setScale(2, RoundingMode.HALF_UP),
+                        that.price.setScale(2, RoundingMode.HALF_UP));
+    }
 }
