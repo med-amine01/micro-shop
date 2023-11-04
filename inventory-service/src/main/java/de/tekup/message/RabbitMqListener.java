@@ -1,6 +1,7 @@
 package de.tekup.message;
 
-import de.tekup.dto.ProductDTO;
+import de.tekup.dto.ProductResponse;
+import de.tekup.exception.InventoryAlreadyExistsException;
 import de.tekup.exception.InventoryServiceException;
 import de.tekup.service.InventoryService;
 import lombok.RequiredArgsConstructor;
@@ -12,18 +13,22 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 @Slf4j
 public class RabbitMqListener {
-    
+
     private static final String QUEUE = "product.queue";
-    
+
     private final InventoryService inventoryService;
-    
+
     @RabbitListener(queues = QUEUE)
-    public void productListener(ProductDTO product) {
+    public void productListener(ProductResponse product) throws InventoryAlreadyExistsException {
         try {
             inventoryService.initQuantityFromQueue(product.getSkuCode());
             log.info("product fetched from message queue and saved in inventory");
 
-        } catch (Exception exception) {
+        } catch (InventoryAlreadyExistsException exception) {
+            log.info("product fetched from message queue and saved in inventory");
+            throw new InventoryAlreadyExistsException(exception.getMessage());
+        }
+        catch (Exception exception) {
             log.error("Exception occurred while fetching product from queue, Exception message: {}", exception.getMessage());
             throw new InventoryServiceException(exception.getMessage());
         }

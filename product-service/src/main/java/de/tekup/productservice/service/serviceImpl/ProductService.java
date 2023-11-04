@@ -30,22 +30,19 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Slf4j
 public class ProductService implements ProductServiceInterface {
-    
+
     @Value("${microservices.coupon-service.uri}")
     private String COUPON_SERVICE_URL;
-    
+
     private final ProductRepository productRepository;
-    
+
     private final RestTemplateConfig restTemplate;
-    
+
     private final RabbitTemplate rabbitTemplate;
-    
-    //private final WebClient.Builder webClientBuilder;
 
     @Override
     public List<ProductResponse> getProducts(boolean enabled) throws ProductServiceBusinessException {
         try {
-            //List<Product> products = productRepository.findAllByEnabled(enabled);
             List<Product> products = productRepository.findAllByEnabledTrueOrEnabledOrderByIdDesc(enabled);
 
             List<ProductResponse> productResponses = products
@@ -141,32 +138,28 @@ public class ProductService implements ProductServiceInterface {
                     .orElseThrow(() -> new ProductNotFoundException("Product with SkuCode " + skuCode + " not found"));
 
             Product product = Mapper.toEntity(productRequest, existingProduct);
-            product.setId(existingProduct.getId());
 
             // Put the two object on the same page (which is common object ProductResponse)
-            ProductResponse convertResponse = Mapper.toDto(Mapper.toEntity(productRequest, existingProduct));
+            ProductResponse convertResponse = Mapper.toDto(product);
+
             // Check if nothing changes
             if (Mapper.toDto(existingProduct).equals(convertResponse)) {
                 throw new ProductServiceBusinessException("No update needed, nothing changed.");
             }
-
+            
             if (null == product.getCouponCode()) {
                 product.setDiscountedPrice(null);
             } else {
                 // Check for requested coupon
-                CouponResponse coupon = getCouponResponse(productRequest.getCouponCode());
+                CouponResponse coupon = getCouponResponse(product.getCouponCode());
                 // Apply discount
                 applyDiscount(product, coupon);
             }
 
             // Update the product and convert to response DTO
-            Product persistedProduct = productRepository.save(product);
-            ProductResponse productResponse = Mapper.toDto(persistedProduct);
+            ProductResponse productResponse = Mapper.toDto(productRepository.save(product));
 
             log.debug("ProductService::updateProduct - Updated product: {}", Mapper.jsonToString(productResponse));
-            
-            rabbitTemplate.convertAndSend(RabbitMqConfig.EXCHANGE, RabbitMqConfig.ROUTING_KEY, productResponse);
-            log.info("product created and sent to the queue");
 
             return productResponse;
         } catch (ProductServiceBusinessException | InvalidResponseException | ProductAlreadyExistsException exception) {
