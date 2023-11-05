@@ -19,9 +19,16 @@ import java.util.List;
 
 @RestControllerAdvice
 public class OrderServiceExceptionHandler {
-
+    
     private static final String FAILED = "FAILED";
-
+    
+    private static APIResponse<?> getServiceResponse(Exception exception) {
+        APIResponse<?> serviceResponse = new APIResponse<>();
+        serviceResponse.setStatus(FAILED);
+        serviceResponse.setErrors(Collections.singletonList(new ErrorDTO("", exception.getMessage())));
+        return serviceResponse;
+    }
+    
     // Bad Args exception handler
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
@@ -48,7 +55,6 @@ public class OrderServiceExceptionHandler {
         return getServiceResponse(exception);
     }
     
-    
     @ExceptionHandler(InvalidResponseException.class)
     public APIResponse<?> handleInvalidResponseException(InvalidResponseException exception) {
         return getServiceResponse(exception);
@@ -57,12 +63,5 @@ public class OrderServiceExceptionHandler {
     @ExceptionHandler(OrderServiceException.class)
     public APIResponse<?> handleOrderServiceException(OrderServiceException exception) {
         return getServiceResponse(exception);
-    }
-    
-    private static APIResponse<?> getServiceResponse(Exception exception) {
-        APIResponse<?> serviceResponse = new APIResponse<>();
-        serviceResponse.setStatus(FAILED);
-        serviceResponse.setErrors(Collections.singletonList(new ErrorDTO("", exception.getMessage())));
-        return serviceResponse;
     }
 }

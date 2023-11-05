@@ -30,17 +30,17 @@ public class Mapper {
     public static Order toEntity(OrderResponse orderResponse) {
         Order order = new Order();
         order.setOrderNumber(orderResponse.getOrderNumber());
-
+        
         // Getting order status
         String status = orderResponse.getOrderStatus();
         if (status.equalsIgnoreCase("pending")) {
             order.setOrderStatus(OrderStatus.PENDING);
-        } else if(status.equalsIgnoreCase("placed")) {
+        } else if (status.equalsIgnoreCase("placed")) {
             order.setOrderStatus(OrderStatus.PLACED);
         } else {
             order.setOrderStatus(OrderStatus.CANCELED);
         }
-
+        
         // Setting converting order line dto to order line entity
         List<OrderLineItems> orderLineItemsList = new ArrayList<>();
         orderResponse.getItems().forEach(itemsResponse -> {
@@ -52,14 +52,14 @@ public class Mapper {
             orderLineItemsList.add(ol);
         });
         order.setOrderLineItemsList(orderLineItemsList);
-
+        
         // TODO : don't forget to update these fields
         order.setCreateBy("order-service");
         order.setUpdatedBy("order-service");
-
+        
         //Setting total price
         order.setTotalPrice(orderResponse.getTotalPrice());
-
+        
         return order;
     }
     

@@ -16,7 +16,7 @@ import javax.persistence.Entity;
 @EqualsAndHashCode(callSuper = true)
 public class Inventory extends AbstractEntity {
     
-    @Column(unique=true)
+    @Column(unique = true)
     private String skuCode;
     private Integer quantity;
     

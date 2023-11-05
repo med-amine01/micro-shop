@@ -16,13 +16,13 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @EqualsAndHashCode
 public class ProductRequest {
-
+    
     @NotBlank(message = "Name is required")
     @Size(min = 2, message = "Name should have at least 2 characters")
     private String name;
-
+    
     private String description;
-
+    
     @NotNull(message = "Price amount is required")
     @Positive(message = "Price amount must be positive")
     private BigDecimal price;

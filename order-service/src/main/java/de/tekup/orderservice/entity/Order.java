@@ -9,15 +9,15 @@ import java.math.BigDecimal;
 import java.util.List;
 
 @Entity
-@Table(name="_order")
+@Table(name = "_order")
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class Order extends AbstractEntity {
     
     private String orderNumber;
-
+    
     private BigDecimal totalPrice;
-
+    
     @Enumerated(EnumType.STRING)
     private OrderStatus orderStatus;
     

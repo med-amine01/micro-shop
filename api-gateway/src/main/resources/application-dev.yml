@@ -18,14 +18,3 @@ spring:
           uri: ${dev.eureka.url}
           predicates:
             - Path=/eureka/**
-
-# Discovery client
-eureka:
-  client:
-    register-with-eureka: true
-    fetch-registry: true
-    service-url:
-      defaultZone: ${dev.eureka.defaultZone}
-  instance:
-    instance-id: ${spring.application.name}:${spring.application.instance-id:${random.value}}
-    prefer-ip-address: true

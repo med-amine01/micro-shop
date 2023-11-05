@@ -12,6 +12,8 @@ import java.lang.annotation.Target;
 @Constraint(validatedBy = de.tekup.productservice.validation.impl.NullButNotBlank.class)
 public @interface NullButNotBlank {
     String message() default "field shouldn't be empty";
+    
     Class<?>[] groups() default {};
+    
     Class<? extends Payload>[] payload() default {};
 }

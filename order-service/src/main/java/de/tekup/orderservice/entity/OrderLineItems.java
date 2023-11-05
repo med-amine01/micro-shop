@@ -8,7 +8,7 @@ import javax.persistence.Table;
 import java.math.BigDecimal;
 
 @Entity
-@Table(name="line_items")
+@Table(name = "line_items")
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class OrderLineItems extends AbstractEntity {

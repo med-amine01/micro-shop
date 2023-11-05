@@ -11,7 +11,7 @@ import javax.validation.constraints.Pattern;
 @AllArgsConstructor
 @NoArgsConstructor
 public class OrderStatusRequest {
-
+    
     @NotBlank(message = "order status is required.")
     @Pattern(regexp = "^(placed|canceled)$", message = "Invalid value. It must be placed or canceled.")
     private String orderStatus;

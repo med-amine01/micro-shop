@@ -19,7 +19,7 @@ public class ProductResponse {
     private BigDecimal price;
     private BigDecimal discountedPrice;
     private boolean enabled;
-
+    
     @Override
     public boolean equals(Object object) {
         if (this == object) return true;

@@ -11,10 +11,10 @@ import javax.validation.constraints.Positive;
 @AllArgsConstructor
 @NoArgsConstructor
 public class InventoryRequest {
-
+    
     @Positive(message = "quantity should be positive.")
     private Integer quantity;
-
+    
     @NotNull(message = "increase value should not be null")
     private boolean increase;
 }

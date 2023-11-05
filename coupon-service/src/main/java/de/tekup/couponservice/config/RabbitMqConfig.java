@@ -28,7 +28,7 @@ public class RabbitMqConfig {
     public static String ROUTING_KEY;
     
     private AmqpAdmin amqpAdmin;
-
+    
     public RabbitMqConfig(AmqpAdmin amqpAdmin) {
         this.amqpAdmin = amqpAdmin;
     }
@@ -53,7 +53,7 @@ public class RabbitMqConfig {
     public void initializeQueue() {
         amqpAdmin.declareQueue(queue());
     }
-
+    
     @Bean
     public Queue queue() {
         return new Queue(queue);
@@ -66,10 +66,7 @@ public class RabbitMqConfig {
     
     @Bean
     public Binding binding(Queue queue, TopicExchange exchange) {
-        return BindingBuilder
-                .bind(queue)
-                .to(exchange)
-                .with(routingKey);
+        return BindingBuilder.bind(queue).to(exchange).with(routingKey);
     }
     
     @Bean

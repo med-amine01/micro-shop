@@ -12,7 +12,7 @@ package de.tekup.productservice.config;
 //@Configuration
 //@EnableSwagger2
 public class SwaggerConfig {
-    
+
 //    @Bean
 //    Docket api() {
 //        return new Docket(DocumentationType.SWAGGER_2)

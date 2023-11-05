@@ -23,11 +23,10 @@ public class OrderController {
     
     @PostMapping
     public ResponseEntity<APIResponse<OrderResponse>> createProduct
-    (
-        @RequestBody @Valid OrderRequest orderRequest,
-        @RequestParam(required = false) String coupon
-    )
-    {
+            (
+                    @RequestBody @Valid OrderRequest orderRequest,
+                    @RequestParam(required = false) String coupon
+            ) {
         APIResponse<OrderResponse> responseDTO = APIResponse
                 .<OrderResponse>builder()
                 .status(SUCCESS)
@@ -39,15 +38,15 @@ public class OrderController {
     
     @PatchMapping("/{uuid}")
     public ResponseEntity<APIResponse<OrderResponse>> patchOrderStatus
-    (
-        @RequestBody @Valid OrderStatusRequest requestStatus,
-        @PathVariable String uuid
-    ) {
+            (
+                    @RequestBody @Valid OrderStatusRequest requestStatus,
+                    @PathVariable String uuid
+            ) {
         
         APIResponse<OrderResponse> responseDTO = APIResponse
                 .<OrderResponse>builder()
                 .status(SUCCESS)
-                .results(orderService.updateOrderStatus(requestStatus,uuid))
+                .results(orderService.updateOrderStatus(requestStatus, uuid))
                 .build();
         
         return ResponseEntity.status(HttpStatus.OK).body(responseDTO);
