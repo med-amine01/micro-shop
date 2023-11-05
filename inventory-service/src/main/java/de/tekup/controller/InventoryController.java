@@ -69,10 +69,10 @@ public class InventoryController {
     
     @PutMapping("/product/quantity/{skuCode}")
     public ResponseEntity<APIResponse<InventoryResponseDTO>> updateInventoryQuantity
-            (
-                    @RequestBody @Valid InventoryRequestDTO requestDTO,
-                    @PathVariable("skuCode") @NotBlank @Size(min = 2) String skuCode
-            ) throws Exception
+    (
+            @RequestBody @Valid InventoryRequestDTO requestDTO,
+            @PathVariable("skuCode") @NotBlank @Size(min = 2) String skuCode
+    ) throws Exception
     {
         
         InventoryResponseDTO prodResponseDto = inventoryService.updateQuantity(requestDTO, skuCode);

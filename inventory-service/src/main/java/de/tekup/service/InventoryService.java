@@ -1,7 +1,9 @@
 package de.tekup.service;
 
+import de.tekup.dto.APIResponse;
 import de.tekup.dto.InventoryRequestDTO;
 import de.tekup.dto.InventoryResponseDTO;
+import de.tekup.dto.ProductResponse;
 import de.tekup.entity.Inventory;
 import de.tekup.exception.InventoryAlreadyExistsException;
 import de.tekup.exception.InventoryNotFoundException;
@@ -11,8 +13,12 @@ import de.tekup.repository.InventoryRepository;
 import de.tekup.util.Mapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import java.util.List;
 
@@ -23,7 +29,11 @@ import java.util.List;
 public class InventoryService {
     
     private final InventoryRepository inventoryRepository;
-    
+
+    private final WebClient.Builder webClientBuilder;
+
+    @Value("${microservices.product-service.uri}")
+    private String PRODUCT_SERVICE_URL;
 
     public InventoryResponseDTO initQuantityFromQueue(String skuCode) throws Exception
     {
@@ -43,7 +53,7 @@ public class InventoryService {
 
         } catch (InventoryAlreadyExistsException exception) {
             log.error("Exception occurred while initializing product, Exception message: {}", exception.getMessage());
-            throw new InventoryAlreadyExistsException();
+            return null;
         } catch (Exception exception) {
             log.error("Exception occurred while fetching product from queue, Exception message: {}",exception.getMessage());
             throw new InventoryServiceException(exception.getMessage());
@@ -85,18 +95,26 @@ public class InventoryService {
         try {
             Inventory inventory = inventoryRepository.findBySkuCode(skuCode)
                     .orElseThrow(() -> new InventoryNotFoundException(skuCode + " not found"));
-            
+
             if (requestDTO.isIncrease()) {
+                // We're increasing and enabling product if the initial qte = 0
+                if (inventory.getQuantity() == 0) {
+                    turnOnOffProduct(inventory.getSkuCode(), true);
+                }
+
                 inventory.increaseQte(requestDTO.getQuantity());
             } else {
                 if (!isDiffQtePositive(requestDTO.getQuantity(), inventory.getQuantity())) {
                     throw new InventoryOutOfStockException("Not enough quantity in inventory");
                 }
+
                 inventory.decreaseQte(requestDTO.getQuantity());
+                if (inventory.getQuantity() == 0) {
+                    turnOnOffProduct(inventory.getSkuCode(), false);
+                }
             }
             
             return Mapper.toDto(inventoryRepository.save(inventory));
-            
         }
         catch (InventoryOutOfStockException | InventoryNotFoundException exception) {
             log.error(exception.getMessage());
@@ -107,12 +125,37 @@ public class InventoryService {
             throw new InventoryServiceException("Exception occurred while updating quantity");
         }
     }
-    
-    private static boolean isDiffQtePositive(int requestedQte, int inventoryQte)
+
+    private void turnOnOffProduct(String skuCode, boolean enabled) {
+        try {
+            ProductResponse productReq = new ProductResponse();
+            productReq.setEnabled(enabled);
+            ResponseEntity<APIResponse<ProductResponse>> productResponseEntity = webClientBuilder
+                    .build()
+                    .put()
+                    .uri(PRODUCT_SERVICE_URL + "/" + skuCode)
+                    .bodyValue(productReq)
+                    .retrieve()
+                    .toEntity(new ParameterizedTypeReference<APIResponse<ProductResponse>>() {})
+                    .block();
+            
+            ProductResponse productResponse = Mapper.getApiResponseData(productResponseEntity);
+
+            log.info(Mapper.jsonToString(productResponse));
+        } catch (InventoryServiceException exception) {
+            log.error(exception.getMessage());
+            throw exception;
+        } catch (Exception exception) {
+            log.error(exception.getMessage());
+            throw exception;
+        }
+    }
+
+    private boolean isDiffQtePositive(int requestedQte, int inventoryQte)
     {
         int diffQte = inventoryQte - requestedQte;
 
         return diffQte >= 0;
     }
-    
+
 }

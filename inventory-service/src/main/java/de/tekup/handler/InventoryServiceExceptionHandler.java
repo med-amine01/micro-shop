@@ -37,25 +37,24 @@ public class InventoryServiceExceptionHandler {
         return serviceResponse;
     }
     
+    @ExceptionHandler(InventoryServiceException.class)
+    public APIResponse<?> handleInventoryServiceException(InventoryServiceException exception) {
+        return getServiceResponse(exception);
+    }
+    
     @ExceptionHandler(InventoryOutOfStockException.class)
-    public APIResponse<?> handleServiceException(InventoryOutOfStockException exception) {
+    public APIResponse<?> handleInventoryOutOfStockException(InventoryOutOfStockException exception) {
         return getServiceResponse(exception);
     }
     
     @ExceptionHandler(InventoryAlreadyExistsException.class)
-    public APIResponse<?> handleServiceException(InventoryAlreadyExistsException exception) {
+    public APIResponse<?> handleInventoryAlreadyExistsException(InventoryAlreadyExistsException exception) {
         return getServiceResponse(exception);
     }
     
     
     @ExceptionHandler(InventoryNotFoundException.class)
-    public APIResponse<?> handleCouponAlreadyExistsException(InventoryNotFoundException exception) {
-        return getServiceResponse(exception);
-    }
-    
-    
-    @ExceptionHandler(InventoryServiceException.class)
-    public APIResponse<?> handleCouponNotFoundException(InventoryServiceException exception) {
+    public APIResponse<?> handleInventoryNotFoundException(InventoryNotFoundException exception) {
         return getServiceResponse(exception);
     }
     

@@ -28,28 +28,42 @@ public class Mapper {
         product.setCouponCode(productRequest.getCouponCode());
         product.setDescription(productRequest.getDescription());
         product.setPrice(productRequest.getPrice());
-
+        
         return product;
     }
-
+    
     public static Product toEntity(ProductRequestUpdate requestUpdate, Product productInDb) {
         Product product = new Product();
+        product.setId(productInDb.getId());
         product.setSkuCode(productInDb.getSkuCode());
-
+        
         String name = requestUpdate.getName() != null ? requestUpdate.getName() : productInDb.getName();
         product.setName(name);
-
+        
         // Check if request code is present in update the code in Db ELSE keep the Db
         String couponCode = requestUpdate.getCouponCode() != null ? requestUpdate.getCouponCode() : productInDb.getCouponCode();
         product.setCouponCode(couponCode);
-
+        
         BigDecimal price = requestUpdate.getPrice() != null ? requestUpdate.getPrice() : productInDb.getPrice();
         product.setPrice(price);
-
+        
+        // we can distinguish if the requested product contains any field other than enabled =>
+        // it's an update from product
+        // ELSE it's an update from inventory to set enabled to false or true
+        
+        if (null == requestUpdate.getName()
+                && null == requestUpdate.getPrice()
+                && null == requestUpdate.getCouponCode()
+        ) {
+            product.setEnabled(requestUpdate.isEnabled());
+        } else {
+            product.setEnabled(productInDb.isEnabled());
+        }
+        
         // Check if request desc is present in update the desc in Db ELSE keep the Db desc
         String description = requestUpdate.getDescription() != null ? requestUpdate.getDescription() : productInDb.getDescription();
         product.setDescription(description);
-
+        
         return product;
     }
     
@@ -61,7 +75,8 @@ public class Mapper {
         productResponse.setDescription(product.getDescription());
         productResponse.setPrice(product.getPrice());
         productResponse.setDiscountedPrice(product.getDiscountedPrice());
-
+        productResponse.setEnabled(product.isEnabled());
+        
         return productResponse;
     }
     
@@ -73,7 +88,7 @@ public class Mapper {
         }
         return null;
     }
-
+    
     public static <T> T getApiResponseData(ResponseEntity<APIResponse<T>> responseEntity) {
         APIResponse<T> apiResponse = responseEntity.getBody();
         
