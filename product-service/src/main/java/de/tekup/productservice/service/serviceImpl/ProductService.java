@@ -193,15 +193,17 @@ public class ProductService implements ProductServiceInterface {
     
     @Override
     public void updateProductsFromQueue(CouponResponse couponResponse) {
-        Optional<Product> products = productRepository.findByCouponCode(couponResponse.getCode());
-        products.ifPresent(product -> {
-            if (!couponResponse.isEnabled()) {
-                product.setDiscountedPrice(null);
-                product.setCouponCode(null);
-            } else {
-                applyDiscount(product, couponResponse);
-            }
-            productRepository.save(product);
+        Optional<List<Product>> products = productRepository.findByCouponCode(couponResponse.getCode());
+        products.ifPresent(productList -> {
+            productList.forEach(product -> {
+                if (!couponResponse.isEnabled()) {
+                    product.setDiscountedPrice(null);
+                    product.setCouponCode(null);
+                } else {
+                    applyDiscount(product, couponResponse);
+                }
+                productRepository.save(product);
+            });
         });
     }
     

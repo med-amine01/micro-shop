@@ -11,7 +11,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     
     Optional<Product> findBySkuCode(String skuCode);
     
-    Optional<Product> findByCouponCode(String couponCode);
+    Optional<List<Product>> findByCouponCode(String couponCode);
     
     List<Product> findAllByEnabledTrueOrEnabledOrderByIdDesc(boolean enabled);
 }
