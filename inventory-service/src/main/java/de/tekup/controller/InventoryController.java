@@ -42,10 +42,9 @@ public class InventoryController {
     @GetMapping("/product/init/{skuCode}")
     public ResponseEntity<APIResponse<InventoryResponseDTO>> initializeProductQuantity
             (
-                @PathVariable("skuCode") @NotBlank @Size(min = 2) String skuCode
-            ) throws Exception
-    {
-
+                    @PathVariable("skuCode") @NotBlank @Size(min = 2) String skuCode
+            ) throws Exception {
+        
         InventoryResponseDTO prodResponseDto = inventoryService.initQuantityFromQueue(skuCode);
         
         APIResponse<InventoryResponseDTO> responseDTO = APIResponse
@@ -58,7 +57,7 @@ public class InventoryController {
         return new ResponseEntity<>(responseDTO, HttpStatus.OK);
     }
     
-
+    
     // http://inventory-service/api/inventories/product/check?skuCode=iphone-13&skuCode=iphone13-red
     // http://inventory-service/api/v1/inventories/product/check?skuCode=iphone_13,iphone_13_red
     @GetMapping("/product/check")
@@ -69,11 +68,10 @@ public class InventoryController {
     
     @PutMapping("/product/quantity/{skuCode}")
     public ResponseEntity<APIResponse<InventoryResponseDTO>> updateInventoryQuantity
-    (
-            @RequestBody @Valid InventoryRequestDTO requestDTO,
-            @PathVariable("skuCode") @NotBlank @Size(min = 2) String skuCode
-    ) throws Exception
-    {
+            (
+                    @RequestBody @Valid InventoryRequestDTO requestDTO,
+                    @PathVariable("skuCode") @NotBlank @Size(min = 2) String skuCode
+            ) throws Exception {
         
         InventoryResponseDTO prodResponseDto = inventoryService.updateQuantity(requestDTO, skuCode);
         

@@ -18,9 +18,16 @@ import java.util.List;
 
 @RestControllerAdvice
 public class InventoryServiceExceptionHandler {
-
+    
     private static final String FAILED = "FAILED";
-
+    
+    private static APIResponse<?> getServiceResponse(Exception exception) {
+        APIResponse<?> serviceResponse = new APIResponse<>();
+        serviceResponse.setStatus(FAILED);
+        serviceResponse.setErrors(Collections.singletonList(new ErrorDTO("", exception.getMessage())));
+        return serviceResponse;
+    }
+    
     // Bad Args exception handler
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
@@ -52,16 +59,8 @@ public class InventoryServiceExceptionHandler {
         return getServiceResponse(exception);
     }
     
-    
     @ExceptionHandler(InventoryNotFoundException.class)
     public APIResponse<?> handleInventoryNotFoundException(InventoryNotFoundException exception) {
         return getServiceResponse(exception);
-    }
-    
-    private static APIResponse<?> getServiceResponse(Exception exception) {
-        APIResponse<?> serviceResponse = new APIResponse<>();
-        serviceResponse.setStatus(FAILED);
-        serviceResponse.setErrors(Collections.singletonList(new ErrorDTO("", exception.getMessage())));
-        return serviceResponse;
     }
 }

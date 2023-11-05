@@ -13,16 +13,15 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class RabbitMqListener {
     
-    private final ProductServiceInterface productServiceInterface;
-    
     private static final String QUEUE = "coupon.queue";
+    private final ProductServiceInterface productServiceInterface;
     
     @RabbitListener(queues = QUEUE)
     public void productListener(CouponResponse coupon) {
         try {
             productServiceInterface.updateProductsFromQueue(coupon);
             log.info("coupon fetched from message queue and updated product");
-
+            
         } catch (Exception exception) {
             log.error("Exception occurred while fetching product from queue, Exception message: {}", exception.getMessage());
             throw new ProductServiceBusinessException(exception.getMessage());

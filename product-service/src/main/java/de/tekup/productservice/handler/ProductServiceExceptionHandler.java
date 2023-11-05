@@ -18,20 +18,28 @@ import java.util.List;
 
 @RestControllerAdvice
 public class ProductServiceExceptionHandler {
-
+    
     private static final String FAILED = "FAILED";
-
+    
+    private static APIResponse<?> getServiceResponse(Exception exception) {
+        APIResponse<?> serviceResponse = new APIResponse<>();
+        serviceResponse.setStatus(FAILED);
+        serviceResponse.setErrors(Collections.singletonList(new ErrorDTO("", exception.getMessage())));
+        return serviceResponse;
+    }
+    
     // Bad Args exception handler
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public APIResponse<?> handleMethodArgumentException(MethodArgumentNotValidException exception) {
         APIResponse<?> serviceResponse = new APIResponse<>();
         List<ErrorDTO> errors = new ArrayList<>();
-
+        
         exception.getBindingResult().getFieldErrors()
                 .forEach(error -> {
                     ErrorDTO errorDTO = new ErrorDTO(error.getField(), error.getDefaultMessage());
-                    errors.add(errorDTO);;
+                    errors.add(errorDTO);
+                    ;
                 });
         serviceResponse.setStatus(FAILED);
         serviceResponse.setErrors(errors);
@@ -61,12 +69,5 @@ public class ProductServiceExceptionHandler {
     @ExceptionHandler(InvalidResponseException.class)
     public APIResponse<?> handleMicroserviceInvalidResponseException(InvalidResponseException exception) {
         return getServiceResponse(exception);
-    }
-
-    private static APIResponse<?> getServiceResponse(Exception exception) {
-        APIResponse<?> serviceResponse = new APIResponse<>();
-        serviceResponse.setStatus(FAILED);
-        serviceResponse.setErrors(Collections.singletonList(new ErrorDTO("", exception.getMessage())));
-        return serviceResponse;
     }
 }

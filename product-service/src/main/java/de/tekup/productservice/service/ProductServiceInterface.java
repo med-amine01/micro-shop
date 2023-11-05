@@ -11,9 +11,9 @@ import java.util.List;
 public interface ProductServiceInterface {
     
     List<ProductResponse> getProducts(boolean enabled) throws ProductServiceBusinessException;
-
+    
     ProductResponse getProductBySkuCode(String skuCode) throws ProductServiceBusinessException;
-
+    
     ProductResponse createProduct(ProductRequest productRequest) throws ProductServiceBusinessException;
     
     ProductResponse updateProduct(String skuCode, ProductRequestUpdate updatedProduct) throws ProductServiceBusinessException;

@@ -12,7 +12,7 @@ public class NullButNotBlank implements ConstraintValidator<de.tekup.productserv
         if (null == name) {
             return true; // Null values are accepted
         }
-
+        
         return !name.trim().isEmpty(); // not empty trimmed values are accepted else return false
     }
 }

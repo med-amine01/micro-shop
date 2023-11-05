@@ -6,6 +6,7 @@ public class InventoryAlreadyExistsException extends Exception {
     public InventoryAlreadyExistsException(String message) {
         super(message);
     }
+    
     public InventoryAlreadyExistsException() {
         super(DEFAULT_MESSAGE);
     }

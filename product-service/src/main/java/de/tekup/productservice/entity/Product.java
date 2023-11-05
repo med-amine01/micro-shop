@@ -10,18 +10,18 @@ import java.math.BigDecimal;
 @Entity
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class Product extends AbstractEntity  {
+public class Product extends AbstractEntity {
     
     @Column(unique = true)
     private String skuCode;
-
+    
     private String name;
-
+    
     private String description;
-
+    
     private String couponCode;
-
+    
     private BigDecimal price;
-
+    
     private BigDecimal discountedPrice;
 }

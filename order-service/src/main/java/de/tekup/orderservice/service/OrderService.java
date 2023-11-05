@@ -92,9 +92,10 @@ public class OrderService {
                     .get()
                     .uri(COUPON_SERVICE_URL + "/" + couponCode)
                     .retrieve()
-                    .toEntity(new ParameterizedTypeReference<APIResponse<CouponResponse>>() {})
+                    .toEntity(new ParameterizedTypeReference<APIResponse<CouponResponse>>() {
+                    })
                     .block();
-
+            
             CouponResponse couponResponse = Mapper.getApiResponseData(responseEntity);
             if (null == couponResponse) {
                 throw new OrderServiceException("couldn't fetch coupon = " + couponCode);
@@ -127,7 +128,7 @@ public class OrderService {
         
         // If fetched order(db) status is the same order(rq) status throw exception
         if (fetchedStatus.equalsIgnoreCase(orderStatusRequest.getOrderStatus())) {
-            throw new OrderServiceException("the order already " + fetchedStatus +" you can't update a "+ fetchedStatus +" order");
+            throw new OrderServiceException("the order already " + fetchedStatus + " you can't update a " + fetchedStatus + " order");
         }
         
         // Patch order status
@@ -155,7 +156,7 @@ public class OrderService {
                 .stream()
                 .anyMatch(count -> count > 1);
     }
-
+    
     private BigDecimal getTotalPrice(
             OrderLineItemsRequest item,
             List<OrderLineItemsResponse> orderItems,
@@ -169,11 +170,12 @@ public class OrderService {
                     .get()
                     .uri(PRODUCT_SERVICE_URL + "/" + item.getSkuCode())
                     .retrieve()
-                    .toEntity(new ParameterizedTypeReference<APIResponse<ProductResponse>>() {})
+                    .toEntity(new ParameterizedTypeReference<APIResponse<ProductResponse>>() {
+                    })
                     .block(); // Blocking to get the response until i get a response
             
             ProductResponse productResponse = Mapper.getApiResponseData(responseEntity);
-
+            
             if (null == productResponse) {
                 throw new OrderServiceException("couldn't fetch requested product");
             }
@@ -183,7 +185,7 @@ public class OrderService {
             orderLineItem.setSkuCode(item.getSkuCode());
             orderLineItem.setQuantity(item.getQuantity());
             // Setting unit price
-            BigDecimal unitePrice =  BigDecimal.ZERO;
+            BigDecimal unitePrice = BigDecimal.ZERO;
             
             String productCouponCode = productResponse.getCouponCode();
             if (null != couponCode && null != productCouponCode) {
@@ -199,14 +201,14 @@ public class OrderService {
             }
             
             orderLineItem.setUnitePrice(unitePrice);
-
+            
             // Setting total price of a single item
             BigDecimal totalSingleItem = Mapper.formatBigDecimalDecimal(unitePrice.multiply(BigDecimal.valueOf(item.getQuantity())));
             orderLineItem.setPrice(totalSingleItem);
-
+            
             // Adding item to orderItems
             orderItems.add(orderLineItem);
-
+            
             // Calculate the total price for each iteration
             totalPrice = totalPrice.add(Mapper.formatBigDecimalDecimal(totalSingleItem));
         } catch (Exception exception) {
@@ -254,7 +256,7 @@ public class OrderService {
                     });
         } catch (Exception exception) {
             log.error(exception.getMessage());
-            throw new OrderServiceException("Error checking product stock " + exception.getMessage());
+            throw new OrderServiceException(exception.getMessage());
         }
     }
     
@@ -263,18 +265,19 @@ public class OrderService {
             InventoryRequest inventoryRequest = new InventoryRequest();
             inventoryRequest.setQuantity(quantity);
             inventoryRequest.setIncrease(increase);
-
+            
             ResponseEntity<APIResponse<InventoryResponse>> responseEntity = webClientBuilder
                     .build()
                     .put()
                     .uri(INVENTORY_SERVICE_URL + "/product/quantity/" + skuCode)
                     .bodyValue(inventoryRequest)
                     .retrieve()
-                    .toEntity(new ParameterizedTypeReference<APIResponse<InventoryResponse>>() {})
+                    .toEntity(new ParameterizedTypeReference<APIResponse<InventoryResponse>>() {
+                    })
                     .block(); // Blocking to get the response until i get a response
             
             InventoryResponse inventoryResponse = Mapper.getApiResponseData(responseEntity);
-
+            
             if (inventoryResponse == null) {
                 throw new OrderServiceException("Couldn't update the stock of " + skuCode);
             }
@@ -283,5 +286,5 @@ public class OrderService {
             throw new OrderServiceException("Error updating stock " + exception.getMessage());
         }
     }
-
+    
 }

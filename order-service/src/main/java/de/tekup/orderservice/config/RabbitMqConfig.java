@@ -14,18 +14,15 @@ import org.springframework.context.annotation.Configuration;
 @Data
 public class RabbitMqConfig {
     
-    @Value("${rabbitmq.queue}")
-    private String queue;
-    
-    @Value("${rabbitmq.exchange}")
-    private String exchange;
-    
-    @Value("${rabbitmq.routing-key}")
-    private String routingKey;
-    
     public static String QUEUE;
     public static String EXCHANGE;
     public static String ROUTING_KEY;
+    @Value("${rabbitmq.queue}")
+    private String queue;
+    @Value("${rabbitmq.exchange}")
+    private String exchange;
+    @Value("${rabbitmq.routing-key}")
+    private String routingKey;
     
     @Value("${rabbitmq.queue}")
     public void setQueue(String queue) {
