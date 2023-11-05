@@ -44,7 +44,11 @@ public class OrderService {
     private String COUPON_SERVICE_URL;
     
     public OrderResponse placeOrder(OrderRequest orderRequest, String couponCode) {
+        CouponResponse couponResponse = null;
         // Check coupon code existence and validity
+        if (null != couponCode) {
+            couponResponse = getCoupon(couponCode);
+        }
         
         // Check if there is replication in items of same skuCode
         if (hasDuplicateSkuCodes(orderRequest.getOrderLineItemsRequestList())) {
@@ -62,7 +66,7 @@ public class OrderService {
             // For every item checks product-service
             // Get the product info and calculate : price =  qte * unit price
             // Sum all the items prices
-            totalPrice = getTotalPrice(item, orderItems, totalPrice, couponCode);
+            totalPrice = getTotalPrice(item, orderItems, totalPrice, couponResponse);
             
             // Decrease inventory stock whether it's (default:PENDING) or PLACED
             updateStock(item.getSkuCode(), item.getQuantity(), false);
@@ -161,7 +165,7 @@ public class OrderService {
             OrderLineItemsRequest item,
             List<OrderLineItemsResponse> orderItems,
             BigDecimal totalPrice,
-            String couponCode
+            CouponResponse couponResponse
     ) {
         try {
             // Call the product service and get product info (unit price)
@@ -187,16 +191,15 @@ public class OrderService {
             // Setting unit price
             BigDecimal unitePrice = BigDecimal.ZERO;
             
-            String productCouponCode = productResponse.getCouponCode();
-            if (null != couponCode && null != productCouponCode) {
-                // Get coupon from coupon-service and checks if it's good
-                getCoupon(couponCode);
-                
-                // Check if the coupon in request param == coupon code of PRODUCT
-                if (productCouponCode.equalsIgnoreCase(couponCode)) {
-                    unitePrice = Mapper.formatBigDecimalDecimal(productResponse.getDiscountedPrice());
-                }
+            // Fetching product code
+            String productCode = productResponse.getCouponCode() != null ? productResponse.getCouponCode() : "";
+
+            // Check if the coupon in request param == coupon code of PRODUCT
+            if (null != couponResponse && productCode.equalsIgnoreCase(couponResponse.getCode())) {
+                // Take the discounted price
+                unitePrice = Mapper.formatBigDecimalDecimal(productResponse.getDiscountedPrice());
             } else {
+                // Take the original price
                 unitePrice = Mapper.formatBigDecimalDecimal(productResponse.getPrice());
             }
             
