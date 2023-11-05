@@ -10,7 +10,6 @@ import de.tekup.orderservice.repository.OrderRepository;
 import de.tekup.orderservice.util.Mapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.ResponseEntity;
@@ -32,8 +31,6 @@ public class OrderService {
     
     private final WebClient.Builder webClientBuilder;
     
-    private final RabbitTemplate rabbitTemplate;
-    
     @Value("${microservices.inventory-service.uri}")
     private String INVENTORY_SERVICE_URL;
     
@@ -42,6 +39,18 @@ public class OrderService {
     
     @Value("${microservices.coupon-service.uri}")
     private String COUPON_SERVICE_URL;
+    
+    public List<OrderResponse> getOrdersByStatus(String status) {
+        List<Order> orders;
+        
+        if (null != status) {
+            orders = orderRepository.findAllByOrderStatusOrderByIdDesc(Mapper.convertStatusToEnum(status));
+        } else {
+            orders = orderRepository.findAllByOrderByIdDesc();
+        }
+        
+        return orders.stream().map(Mapper::toDto).toList();
+    }
     
     public OrderResponse placeOrder(OrderRequest orderRequest, String couponCode) {
         CouponResponse couponResponse = null;
@@ -89,34 +98,6 @@ public class OrderService {
         return orderResponse;
     }
     
-    private CouponResponse getCoupon(String couponCode) {
-        try {
-            ResponseEntity<APIResponse<CouponResponse>> responseEntity = webClientBuilder
-                    .build()
-                    .get()
-                    .uri(COUPON_SERVICE_URL + "/" + couponCode)
-                    .retrieve()
-                    .toEntity(new ParameterizedTypeReference<APIResponse<CouponResponse>>() {
-                    })
-                    .block();
-            
-            CouponResponse couponResponse = Mapper.getApiResponseData(responseEntity);
-            if (null == couponResponse) {
-                throw new OrderServiceException("couldn't fetch coupon = " + couponCode);
-            }
-            
-            // Check for validity
-            if (!couponResponse.isEnabled()) {
-                throw new OrderServiceException("coupon already expired");
-            }
-            
-            return couponResponse;
-        } catch (OrderServiceException exception) {
-            log.error(exception.getMessage());
-            throw exception;
-        }
-    }
-    
     public OrderResponse updateOrderStatus(OrderStatusRequest orderStatusRequest, String uuid) {
         // Get order by uuid
         Order order = orderRepository
@@ -148,6 +129,34 @@ public class OrderService {
         }
         
         return Mapper.toDto(orderRepository.save(order));
+    }
+    
+    private CouponResponse getCoupon(String couponCode) {
+        try {
+            ResponseEntity<APIResponse<CouponResponse>> responseEntity = webClientBuilder
+                    .build()
+                    .get()
+                    .uri(COUPON_SERVICE_URL + "/" + couponCode)
+                    .retrieve()
+                    .toEntity(new ParameterizedTypeReference<APIResponse<CouponResponse>>() {
+                    })
+                    .block();
+            
+            CouponResponse couponResponse = Mapper.getApiResponseData(responseEntity);
+            if (null == couponResponse) {
+                throw new OrderServiceException("couldn't fetch coupon = " + couponCode);
+            }
+            
+            // Check for validity
+            if (!couponResponse.isEnabled()) {
+                throw new OrderServiceException("coupon already expired");
+            }
+            
+            return couponResponse;
+        } catch (OrderServiceException exception) {
+            log.error(exception.getMessage());
+            throw exception;
+        }
     }
     
     private boolean hasDuplicateSkuCodes(List<OrderLineItemsRequest> orderLineItems) {
@@ -193,7 +202,7 @@ public class OrderService {
             
             // Fetching product code
             String productCode = productResponse.getCouponCode() != null ? productResponse.getCouponCode() : "";
-
+            
             // Check if the coupon in request param == coupon code of PRODUCT
             if (null != couponResponse && productCode.equalsIgnoreCase(couponResponse.getCode())) {
                 // Take the discounted price
@@ -289,5 +298,4 @@ public class OrderService {
             throw new OrderServiceException("Error updating stock " + exception.getMessage());
         }
     }
-    
 }

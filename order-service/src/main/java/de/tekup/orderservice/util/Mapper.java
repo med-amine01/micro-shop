@@ -9,6 +9,7 @@ import de.tekup.orderservice.entity.Order;
 import de.tekup.orderservice.entity.OrderLineItems;
 import de.tekup.orderservice.enums.OrderStatus;
 import de.tekup.orderservice.exception.InvalidResponseException;
+import de.tekup.orderservice.exception.OrderServiceException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 
@@ -16,7 +17,9 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Stream;
 
 @Slf4j
 public class Mapper {
@@ -31,15 +34,8 @@ public class Mapper {
         Order order = new Order();
         order.setOrderNumber(orderResponse.getOrderNumber());
         
-        // Getting order status
-        String status = orderResponse.getOrderStatus();
-        if (status.equalsIgnoreCase("pending")) {
-            order.setOrderStatus(OrderStatus.PENDING);
-        } else if (status.equalsIgnoreCase("placed")) {
-            order.setOrderStatus(OrderStatus.PLACED);
-        } else {
-            order.setOrderStatus(OrderStatus.CANCELED);
-        }
+        OrderStatus orderStatus = convertStatusToEnum(orderResponse.getOrderStatus());
+        order.setOrderStatus(orderStatus);
         
         // Setting converting order line dto to order line entity
         List<OrderLineItems> orderLineItemsList = new ArrayList<>();
@@ -61,6 +57,23 @@ public class Mapper {
         order.setTotalPrice(orderResponse.getTotalPrice());
         
         return order;
+    }
+    
+    public static OrderStatus convertStatusToEnum(String orderStatus) {
+        String[] stArray = Stream.of(OrderStatus.values()).map(OrderStatus::name).toArray(String[]::new);
+        String status = orderStatus.toUpperCase();
+
+        if (!Arrays.stream(stArray).anyMatch(status::equals)) {
+            throw new OrderServiceException("Order status not found : " + orderStatus);
+        }
+        
+        if (status.equalsIgnoreCase("pending")) {
+            return OrderStatus.PENDING;
+        } else if (status.equalsIgnoreCase("placed")) {
+            return OrderStatus.PLACED;
+        }
+        
+        return OrderStatus.CANCELED;
     }
     
     public static OrderResponse toDto(Order order) {
