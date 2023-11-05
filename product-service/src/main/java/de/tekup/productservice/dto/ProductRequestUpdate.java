@@ -25,4 +25,6 @@ public class ProductRequestUpdate {
     
     @NullButNotBlank
     private String couponCode;
+
+    private boolean enabled;
 }

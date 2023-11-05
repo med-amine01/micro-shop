@@ -63,6 +63,7 @@ public class OrderService {
             // Get the product info and calculate : price =  qte * unit price
             // Sum all the items prices
             totalPrice = getTotalPrice(item, orderItems, totalPrice, couponCode);
+            
             // Decrease inventory stock whether it's (default:PENDING) or PLACED
             updateStock(item.getSkuCode(), item.getQuantity(), false);
         }
@@ -89,11 +90,11 @@ public class OrderService {
             ResponseEntity<APIResponse<CouponResponse>> responseEntity = webClientBuilder
                     .build()
                     .get()
-                    .uri(COUPON_SERVICE_URL + "/" +couponCode)
+                    .uri(COUPON_SERVICE_URL + "/" + couponCode)
                     .retrieve()
                     .toEntity(new ParameterizedTypeReference<APIResponse<CouponResponse>>() {})
                     .block();
-            
+
             CouponResponse couponResponse = Mapper.getApiResponseData(responseEntity);
             if (null == couponResponse) {
                 throw new OrderServiceException("couldn't fetch coupon = " + couponCode);
@@ -189,6 +190,7 @@ public class OrderService {
                 // Get coupon from coupon-service and checks if it's good
                 getCoupon(couponCode);
                 
+                // Check if the coupon in request param == coupon code of PRODUCT
                 if (productCouponCode.equalsIgnoreCase(couponCode)) {
                     unitePrice = Mapper.formatBigDecimalDecimal(productResponse.getDiscountedPrice());
                 }

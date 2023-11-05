@@ -11,10 +11,11 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 @NoArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class ProductDTO {
+public class ProductResponse {
     private String skuCode;
     private String name;
     private String description;
+    private boolean enabled;
     private BigDecimal price;
     private String couponCode;
     private String createdAt;

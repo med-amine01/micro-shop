@@ -18,6 +18,7 @@ public class ProductResponse {
     private String description;
     private BigDecimal price;
     private BigDecimal discountedPrice;
+    private boolean enabled;
 
     @Override
     public boolean equals(Object object) {
@@ -27,6 +28,7 @@ public class ProductResponse {
         return Objects.equals(name, that.name) &&
                 Objects.equals(couponCode, that.couponCode) &&
                 Objects.equals(description, that.description) &&
+                Objects.equals(enabled, that.enabled) &&
                 Objects.equals(price.setScale(2, RoundingMode.HALF_UP),
                         that.price.setScale(2, RoundingMode.HALF_UP));
     }
