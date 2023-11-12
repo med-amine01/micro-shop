@@ -49,24 +49,28 @@ public class ProductServiceExceptionHandler {
     
     // Business Product service exception handler
     @ExceptionHandler(ProductServiceBusinessException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
     public APIResponse<?> handleServiceException(ProductServiceBusinessException exception) {
         return getServiceResponse(exception);
     }
     
     // Product Already Exists exception handler
     @ExceptionHandler(ProductAlreadyExistsException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
     public APIResponse<?> handleProductAlreadyExistsException(ProductAlreadyExistsException exception) {
         return getServiceResponse(exception);
     }
     
     // Product Not Found exception handler
     @ExceptionHandler(ProductNotFoundException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
     public APIResponse<?> handleProductNotFoundException(ProductNotFoundException exception) {
         return getServiceResponse(exception);
     }
     
     // Business Product service exception handler
     @ExceptionHandler(InvalidResponseException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
     public APIResponse<?> handleMicroserviceInvalidResponseException(InvalidResponseException exception) {
         return getServiceResponse(exception);
     }

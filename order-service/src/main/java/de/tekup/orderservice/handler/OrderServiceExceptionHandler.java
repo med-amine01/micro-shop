@@ -46,21 +46,25 @@ public class OrderServiceExceptionHandler {
     }
     
     @ExceptionHandler(OrderNotFoundException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
     public APIResponse<?> handleOrderNotFoundException(OrderNotFoundException exception) {
         return getServiceResponse(exception);
     }
     
     @ExceptionHandler(InvalidRequestException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
     public APIResponse<?> handleInvalidRequestException(InvalidRequestException exception) {
         return getServiceResponse(exception);
     }
     
     @ExceptionHandler(InvalidResponseException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
     public APIResponse<?> handleInvalidResponseException(InvalidResponseException exception) {
         return getServiceResponse(exception);
     }
     
     @ExceptionHandler(OrderServiceException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
     public APIResponse<?> handleOrderServiceException(OrderServiceException exception) {
         return getServiceResponse(exception);
     }

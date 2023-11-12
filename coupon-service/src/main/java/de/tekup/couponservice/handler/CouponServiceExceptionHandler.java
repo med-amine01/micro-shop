@@ -37,17 +37,20 @@ public class CouponServiceExceptionHandler {
     }
     
     @ExceptionHandler(CouponAlreadyExistsException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
     public APIResponse<?> handleCouponAlreadyExistsException(CouponAlreadyExistsException exception) {
         return getServiceResponse(exception);
     }
     
     @ExceptionHandler(CouponNotFoundException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
     public APIResponse<?> handleCouponNotFoundException(CouponNotFoundException exception) {
         return getServiceResponse(exception);
     }
     
     
     @ExceptionHandler(CouponServiceBusinessException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
     public APIResponse<?> handleCouponServiceBusinessException(CouponServiceBusinessException exception) {
         return getServiceResponse(exception);
     }
