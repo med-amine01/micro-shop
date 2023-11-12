@@ -1,7 +1,7 @@
 package de.tekup.controller;
 
 import de.tekup.dto.request.RoleRequest;
-import de.tekup.dto.response.APIResponse;
+import de.tekup.dto.response.ApiResponse;
 import de.tekup.dto.response.RoleResponse;
 import de.tekup.service.RoleService;
 import lombok.RequiredArgsConstructor;
@@ -24,9 +24,9 @@ public class RoleController {
     private final RoleService roleService;
     
     @GetMapping
-    public ResponseEntity<APIResponse<List<RoleResponse>>> getRoles() {
+    public ResponseEntity<ApiResponse<List<RoleResponse>>> getRoles() {
         
-        APIResponse<List<RoleResponse>> response = APIResponse
+        ApiResponse<List<RoleResponse>> response = ApiResponse
                 .<List<RoleResponse>>builder()
                 .status(SUCCESS)
                 .results(roleService.findRoles())
@@ -36,8 +36,8 @@ public class RoleController {
     }
     
     @PostMapping
-    public ResponseEntity<APIResponse<RoleResponse>> createRole(@RequestBody @Valid RoleRequest roleRequest) {
-        APIResponse<RoleResponse> response = APIResponse
+    public ResponseEntity<ApiResponse<RoleResponse>> createRole(@RequestBody @Valid RoleRequest roleRequest) {
+        ApiResponse<RoleResponse> response = ApiResponse
                 .<RoleResponse>builder()
                 .status(SUCCESS)
                 .results(roleService.saveRole(roleRequest))

@@ -1,6 +1,6 @@
 package de.tekup.productservice.message;
 
-import de.tekup.productservice.dto.CouponResponse;
+import de.tekup.productservice.dto.response.CouponResponse;
 import de.tekup.productservice.exception.ProductServiceBusinessException;
 import de.tekup.productservice.service.ProductServiceInterface;
 import lombok.RequiredArgsConstructor;

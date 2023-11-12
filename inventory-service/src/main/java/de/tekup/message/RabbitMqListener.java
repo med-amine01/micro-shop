@@ -1,6 +1,6 @@
 package de.tekup.message;
 
-import de.tekup.dto.ProductResponse;
+import de.tekup.dto.response.ProductResponse;
 import de.tekup.exception.InventoryAlreadyExistsException;
 import de.tekup.exception.InventoryServiceException;
 import de.tekup.service.InventoryService;

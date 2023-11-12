@@ -2,9 +2,9 @@ package de.tekup.orderservice.util;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import de.tekup.orderservice.dto.APIResponse;
-import de.tekup.orderservice.dto.OrderLineItemsResponse;
-import de.tekup.orderservice.dto.OrderResponse;
+import de.tekup.orderservice.dto.response.ApiResponse;
+import de.tekup.orderservice.dto.response.OrderLineItemsResponse;
+import de.tekup.orderservice.dto.response.OrderResponse;
 import de.tekup.orderservice.entity.Order;
 import de.tekup.orderservice.entity.OrderLineItems;
 import de.tekup.orderservice.enums.OrderStatus;
@@ -115,8 +115,8 @@ public class Mapper {
     }
     
     
-    public static <T> T getApiResponseData(ResponseEntity<APIResponse<T>> responseEntity) {
-        APIResponse<T> apiResponse = responseEntity.getBody();
+    public static <T> T getApiResponseData(ResponseEntity<ApiResponse<T>> responseEntity) {
+        ApiResponse<T> apiResponse = responseEntity.getBody();
         
         if (apiResponse != null && "FAILED".equals(apiResponse.getStatus())) {
             String errorDetails = apiResponse.getErrors().isEmpty()

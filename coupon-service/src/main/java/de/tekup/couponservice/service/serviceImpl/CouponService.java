@@ -1,9 +1,9 @@
 package de.tekup.couponservice.service.serviceImpl;
 
 import de.tekup.couponservice.config.RabbitMqConfig;
-import de.tekup.couponservice.dto.CouponRequest;
-import de.tekup.couponservice.dto.CouponRequestUpdate;
-import de.tekup.couponservice.dto.CouponResponse;
+import de.tekup.couponservice.dto.request.CouponRequest;
+import de.tekup.couponservice.dto.request.CouponUpdateRequest;
+import de.tekup.couponservice.dto.response.CouponResponse;
 import de.tekup.couponservice.entity.Coupon;
 import de.tekup.couponservice.event.CouponCreatedEvent;
 import de.tekup.couponservice.event.CouponUpdatedEvent;
@@ -112,7 +112,7 @@ public class CouponService implements CouponServiceInterface {
     }
 
     @Override
-    public CouponResponse updateCoupon(String code, CouponRequestUpdate updatedCoupon) throws CouponServiceBusinessException {
+    public CouponResponse updateCoupon(String code, CouponUpdateRequest updatedCoupon) throws CouponServiceBusinessException {
         try {
             // Fetch the existing coupon by code
             Coupon existingCoupon = couponRepository.findByCode(code)

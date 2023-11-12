@@ -1,7 +1,7 @@
 package de.tekup.controller;
 
 import de.tekup.dto.request.AuthRequest;
-import de.tekup.dto.response.APIResponse;
+import de.tekup.dto.response.ApiResponse;
 import de.tekup.dto.response.AuthResponse;
 import de.tekup.service.JwtService;
 import lombok.AllArgsConstructor;
@@ -26,10 +26,10 @@ public class AuthController {
     private final JwtService jwtService;
     
     @PostMapping("/token")
-    public ResponseEntity<APIResponse<AuthResponse>> createJwtToken(@RequestBody @Valid AuthRequest authRequest) throws Exception {
+    public ResponseEntity<ApiResponse<AuthResponse>> createJwtToken(@RequestBody @Valid AuthRequest authRequest) throws Exception {
         AuthResponse authResponse = jwtService.generateJwtToken(authRequest);
         
-        APIResponse<AuthResponse> response = APIResponse
+        ApiResponse<AuthResponse> response = ApiResponse
                 .<AuthResponse>builder()
                 .status(SUCCESS)
                 .results(authResponse)

@@ -1,6 +1,6 @@
 package de.tekup.handler;
 
-import de.tekup.dto.response.APIResponse;
+import de.tekup.dto.response.ApiResponse;
 import de.tekup.dto.response.ErrorResponse;
 import de.tekup.exception.*;
 import de.tekup.util.Mapper;
@@ -30,8 +30,8 @@ public class IdentityServiceHandler {
         response.getWriter().write(Objects.requireNonNull(Mapper.jsonToString(getServiceResponse(exception))));
     }
     
-    private static APIResponse<?> getServiceResponse(Exception exception) {
-        APIResponse<?> serviceResponse = new APIResponse<>();
+    private static ApiResponse<?> getServiceResponse(Exception exception) {
+        ApiResponse<?> serviceResponse = new ApiResponse<>();
         serviceResponse.setStatus(FAILED);
         serviceResponse.setErrors(Collections.singletonList(new ErrorResponse("", exception.getMessage())));
         return serviceResponse;
@@ -40,8 +40,8 @@ public class IdentityServiceHandler {
     // Bad Args exception handler
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public APIResponse<?> handleMethodArgumentException(MethodArgumentNotValidException exception) {
-        APIResponse<?> serviceResponse = new APIResponse<>();
+    public ApiResponse<?> handleMethodArgumentException(MethodArgumentNotValidException exception) {
+        ApiResponse<?> serviceResponse = new ApiResponse<>();
         List<ErrorResponse> errors = new ArrayList<>();
         
         exception.getBindingResult().getFieldErrors()
@@ -58,42 +58,42 @@ public class IdentityServiceHandler {
     // Role Service Exception handler
     @ExceptionHandler(RoleServiceException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public APIResponse<?> handleRoleServiceException(RoleServiceException exception) {
+    public ApiResponse<?> handleRoleServiceException(RoleServiceException exception) {
         return getServiceResponse(exception);
     }
     
     // User Service Exception handler
     @ExceptionHandler(UserServiceException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public APIResponse<?> handleUserServiceException(UserServiceException exception) {
+    public ApiResponse<?> handleUserServiceException(UserServiceException exception) {
         return getServiceResponse(exception);
     }
     
     // Invalid response exception handler
     @ExceptionHandler(InvalidResponseException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public APIResponse<?> handleInvalidResponseException(InvalidResponseException exception) {
+    public ApiResponse<?> handleInvalidResponseException(InvalidResponseException exception) {
         return getServiceResponse(exception);
     }
     
     // Invalid jwt service exception handler
     @ExceptionHandler(JwtServiceException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public APIResponse<?> handleJwtServiceException(JwtServiceException exception) {
+    public ApiResponse<?> handleJwtServiceException(JwtServiceException exception) {
         return getServiceResponse(exception);
     }
     
     // Bad credentials exception handler
     @ExceptionHandler(BadCredentialsException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public APIResponse<?> handleBadCredentialsException(BadCredentialsException exception) {
+    public ApiResponse<?> handleBadCredentialsException(BadCredentialsException exception) {
         return getServiceResponse(exception);
     }
     
     // Bad credentials exception handler
     @ExceptionHandler(UsernameNotFoundException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public APIResponse<?> handleBadCredentialsException(UsernameNotFoundException exception) {
+    public ApiResponse<?> handleBadCredentialsException(UsernameNotFoundException exception) {
         return getServiceResponse(exception);
     }
 }

@@ -1,8 +1,8 @@
 package de.tekup.orderservice.handler;
 
 
-import de.tekup.orderservice.dto.APIResponse;
-import de.tekup.orderservice.dto.ErrorDTO;
+import de.tekup.orderservice.dto.response.ApiResponse;
+import de.tekup.orderservice.dto.response.ErrorResponse;
 import de.tekup.orderservice.exception.InvalidRequestException;
 import de.tekup.orderservice.exception.InvalidResponseException;
 import de.tekup.orderservice.exception.OrderNotFoundException;
@@ -22,23 +22,23 @@ public class OrderServiceExceptionHandler {
     
     private static final String FAILED = "FAILED";
     
-    private static APIResponse<?> getServiceResponse(Exception exception) {
-        APIResponse<?> serviceResponse = new APIResponse<>();
+    private static ApiResponse<?> getServiceResponse(Exception exception) {
+        ApiResponse<?> serviceResponse = new ApiResponse<>();
         serviceResponse.setStatus(FAILED);
-        serviceResponse.setErrors(Collections.singletonList(new ErrorDTO("", exception.getMessage())));
+        serviceResponse.setErrors(Collections.singletonList(new ErrorResponse("", exception.getMessage())));
         return serviceResponse;
     }
     
     // Bad Args exception handler
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public APIResponse<?> handleMethodArgumentException(MethodArgumentNotValidException exception) {
-        APIResponse<?> serviceResponse = new APIResponse<>();
-        List<ErrorDTO> errors = new ArrayList<>();
+    public ApiResponse<?> handleMethodArgumentException(MethodArgumentNotValidException exception) {
+        ApiResponse<?> serviceResponse = new ApiResponse<>();
+        List<ErrorResponse> errors = new ArrayList<>();
         exception.getBindingResult().getFieldErrors()
                 .forEach(error -> {
-                    ErrorDTO errorDTO = new ErrorDTO(error.getField(), error.getDefaultMessage());
-                    errors.add(errorDTO);
+                    ErrorResponse errorResponse = new ErrorResponse(error.getField(), error.getDefaultMessage());
+                    errors.add(errorResponse);
                 });
         serviceResponse.setStatus(FAILED);
         serviceResponse.setErrors(errors);
@@ -47,25 +47,25 @@ public class OrderServiceExceptionHandler {
     
     @ExceptionHandler(OrderNotFoundException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public APIResponse<?> handleOrderNotFoundException(OrderNotFoundException exception) {
+    public ApiResponse<?> handleOrderNotFoundException(OrderNotFoundException exception) {
         return getServiceResponse(exception);
     }
     
     @ExceptionHandler(InvalidRequestException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public APIResponse<?> handleInvalidRequestException(InvalidRequestException exception) {
+    public ApiResponse<?> handleInvalidRequestException(InvalidRequestException exception) {
         return getServiceResponse(exception);
     }
     
     @ExceptionHandler(InvalidResponseException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public APIResponse<?> handleInvalidResponseException(InvalidResponseException exception) {
+    public ApiResponse<?> handleInvalidResponseException(InvalidResponseException exception) {
         return getServiceResponse(exception);
     }
     
     @ExceptionHandler(OrderServiceException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public APIResponse<?> handleOrderServiceException(OrderServiceException exception) {
+    public ApiResponse<?> handleOrderServiceException(OrderServiceException exception) {
         return getServiceResponse(exception);
     }
 }

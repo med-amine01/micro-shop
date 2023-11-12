@@ -1,6 +1,10 @@
 package de.tekup.orderservice.service;
 
-import de.tekup.orderservice.dto.*;
+import de.tekup.orderservice.dto.request.InventoryRequest;
+import de.tekup.orderservice.dto.request.OrderLineItemsRequest;
+import de.tekup.orderservice.dto.request.OrderRequest;
+import de.tekup.orderservice.dto.request.OrderStatusRequest;
+import de.tekup.orderservice.dto.response.*;
 import de.tekup.orderservice.entity.Order;
 import de.tekup.orderservice.enums.OrderStatus;
 import de.tekup.orderservice.exception.InvalidRequestException;
@@ -133,12 +137,12 @@ public class OrderService {
     
     private CouponResponse getCoupon(String couponCode) {
         try {
-            ResponseEntity<APIResponse<CouponResponse>> responseEntity = webClientBuilder
+            ResponseEntity<ApiResponse<CouponResponse>> responseEntity = webClientBuilder
                     .build()
                     .get()
                     .uri(COUPON_SERVICE_URL + "/" + couponCode)
                     .retrieve()
-                    .toEntity(new ParameterizedTypeReference<APIResponse<CouponResponse>>() {
+                    .toEntity(new ParameterizedTypeReference<ApiResponse<CouponResponse>>() {
                     })
                     .block();
             
@@ -178,12 +182,12 @@ public class OrderService {
     ) {
         try {
             // Call the product service and get product info (unit price)
-            ResponseEntity<APIResponse<ProductResponse>> responseEntity = webClientBuilder
+            ResponseEntity<ApiResponse<ProductResponse>> responseEntity = webClientBuilder
                     .build()
                     .get()
                     .uri(PRODUCT_SERVICE_URL + "/" + item.getSkuCode())
                     .retrieve()
-                    .toEntity(new ParameterizedTypeReference<APIResponse<ProductResponse>>() {
+                    .toEntity(new ParameterizedTypeReference<ApiResponse<ProductResponse>>() {
                     })
                     .block(); // Blocking to get the response until i get a response
             
@@ -278,13 +282,13 @@ public class OrderService {
             inventoryRequest.setQuantity(quantity);
             inventoryRequest.setIncrease(increase);
             
-            ResponseEntity<APIResponse<InventoryResponse>> responseEntity = webClientBuilder
+            ResponseEntity<ApiResponse<InventoryResponse>> responseEntity = webClientBuilder
                     .build()
                     .put()
                     .uri(INVENTORY_SERVICE_URL + "/product/quantity/" + skuCode)
                     .bodyValue(inventoryRequest)
                     .retrieve()
-                    .toEntity(new ParameterizedTypeReference<APIResponse<InventoryResponse>>() {
+                    .toEntity(new ParameterizedTypeReference<ApiResponse<InventoryResponse>>() {
                     })
                     .block(); // Blocking to get the response until i get a response
             
