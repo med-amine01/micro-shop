@@ -45,21 +45,25 @@ public class InventoryServiceExceptionHandler {
     }
     
     @ExceptionHandler(InventoryServiceException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
     public APIResponse<?> handleInventoryServiceException(InventoryServiceException exception) {
         return getServiceResponse(exception);
     }
     
     @ExceptionHandler(InventoryOutOfStockException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
     public APIResponse<?> handleInventoryOutOfStockException(InventoryOutOfStockException exception) {
         return getServiceResponse(exception);
     }
     
     @ExceptionHandler(InventoryAlreadyExistsException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
     public APIResponse<?> handleInventoryAlreadyExistsException(InventoryAlreadyExistsException exception) {
         return getServiceResponse(exception);
     }
     
     @ExceptionHandler(InventoryNotFoundException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
     public APIResponse<?> handleInventoryNotFoundException(InventoryNotFoundException exception) {
         return getServiceResponse(exception);
     }

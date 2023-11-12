@@ -1,6 +1,5 @@
 package de.tekup.dto.response;
 
-import de.tekup.entity.Role;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
