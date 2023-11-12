@@ -2,7 +2,11 @@ package de.tekup.productservice.service.serviceImpl;
 
 import de.tekup.productservice.config.RabbitMqConfig;
 import de.tekup.productservice.config.RestTemplateConfig;
-import de.tekup.productservice.dto.*;
+import de.tekup.productservice.dto.request.ProductRequest;
+import de.tekup.productservice.dto.request.ProductUpdateRequest;
+import de.tekup.productservice.dto.response.ApiResponse;
+import de.tekup.productservice.dto.response.CouponResponse;
+import de.tekup.productservice.dto.response.ProductResponse;
 import de.tekup.productservice.entity.Product;
 import de.tekup.productservice.exception.InvalidResponseException;
 import de.tekup.productservice.exception.ProductAlreadyExistsException;
@@ -128,7 +132,7 @@ public class ProductService implements ProductServiceInterface {
     }
     
     @Override
-    public ProductResponse updateProduct(String skuCode, ProductRequestUpdate productRequest) throws ProductServiceBusinessException {
+    public ProductResponse updateProduct(String skuCode, ProductUpdateRequest productRequest) throws ProductServiceBusinessException {
         try {
             // Fetch the existing product and update its properties
             Product existingProduct = productRepository.findBySkuCode(skuCode)
@@ -210,7 +214,7 @@ public class ProductService implements ProductServiceInterface {
     private CouponResponse getCouponResponse(String couponCode) {
         try {
             // Retrieving coupon from coupon-service and map it to APIResponse
-            ResponseEntity<APIResponse<CouponResponse>> responseEntity = restTemplate
+            ResponseEntity<ApiResponse<CouponResponse>> responseEntity = restTemplate
                     .getRestTemplate()
                     .exchange(COUPON_SERVICE_URL + "/" + couponCode,
                             HttpMethod.GET,

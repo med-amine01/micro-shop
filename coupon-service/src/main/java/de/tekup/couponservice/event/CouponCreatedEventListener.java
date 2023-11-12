@@ -1,6 +1,6 @@
 package de.tekup.couponservice.event;
 
-import de.tekup.couponservice.dto.CouponResponse;
+import de.tekup.couponservice.dto.response.CouponResponse;
 import de.tekup.couponservice.service.serviceImpl.CouponSchedulerService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
