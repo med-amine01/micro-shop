@@ -1,7 +1,7 @@
 package de.tekup.handler;
 
-import de.tekup.dto.APIResponse;
-import de.tekup.dto.ErrorDTO;
+import de.tekup.dto.response.ApiResponse;
+import de.tekup.dto.response.ErrorResponse;
 import de.tekup.exception.InventoryAlreadyExistsException;
 import de.tekup.exception.InventoryNotFoundException;
 import de.tekup.exception.InventoryOutOfStockException;
@@ -21,23 +21,23 @@ public class InventoryServiceExceptionHandler {
     
     private static final String FAILED = "FAILED";
     
-    private static APIResponse<?> getServiceResponse(Exception exception) {
-        APIResponse<?> serviceResponse = new APIResponse<>();
+    private static ApiResponse<?> getServiceResponse(Exception exception) {
+        ApiResponse<?> serviceResponse = new ApiResponse<>();
         serviceResponse.setStatus(FAILED);
-        serviceResponse.setErrors(Collections.singletonList(new ErrorDTO("", exception.getMessage())));
+        serviceResponse.setErrors(Collections.singletonList(new ErrorResponse("", exception.getMessage())));
         return serviceResponse;
     }
     
     // Bad Args exception handler
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public APIResponse<?> handleMethodArgumentException(MethodArgumentNotValidException exception) {
-        APIResponse<?> serviceResponse = new APIResponse<>();
-        List<ErrorDTO> errors = new ArrayList<>();
+    public ApiResponse<?> handleMethodArgumentException(MethodArgumentNotValidException exception) {
+        ApiResponse<?> serviceResponse = new ApiResponse<>();
+        List<ErrorResponse> errors = new ArrayList<>();
         exception.getBindingResult().getFieldErrors()
                 .forEach(error -> {
-                    ErrorDTO errorDTO = new ErrorDTO(error.getField(), error.getDefaultMessage());
-                    errors.add(errorDTO);
+                    ErrorResponse errorResponse = new ErrorResponse(error.getField(), error.getDefaultMessage());
+                    errors.add(errorResponse);
                 });
         serviceResponse.setStatus(FAILED);
         serviceResponse.setErrors(errors);
@@ -46,25 +46,25 @@ public class InventoryServiceExceptionHandler {
     
     @ExceptionHandler(InventoryServiceException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public APIResponse<?> handleInventoryServiceException(InventoryServiceException exception) {
+    public ApiResponse<?> handleInventoryServiceException(InventoryServiceException exception) {
         return getServiceResponse(exception);
     }
     
     @ExceptionHandler(InventoryOutOfStockException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public APIResponse<?> handleInventoryOutOfStockException(InventoryOutOfStockException exception) {
+    public ApiResponse<?> handleInventoryOutOfStockException(InventoryOutOfStockException exception) {
         return getServiceResponse(exception);
     }
     
     @ExceptionHandler(InventoryAlreadyExistsException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public APIResponse<?> handleInventoryAlreadyExistsException(InventoryAlreadyExistsException exception) {
+    public ApiResponse<?> handleInventoryAlreadyExistsException(InventoryAlreadyExistsException exception) {
         return getServiceResponse(exception);
     }
     
     @ExceptionHandler(InventoryNotFoundException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public APIResponse<?> handleInventoryNotFoundException(InventoryNotFoundException exception) {
+    public ApiResponse<?> handleInventoryNotFoundException(InventoryNotFoundException exception) {
         return getServiceResponse(exception);
     }
 }

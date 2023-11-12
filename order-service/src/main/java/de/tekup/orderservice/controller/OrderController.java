@@ -1,9 +1,9 @@
 package de.tekup.orderservice.controller;
 
-import de.tekup.orderservice.dto.APIResponse;
-import de.tekup.orderservice.dto.OrderRequest;
-import de.tekup.orderservice.dto.OrderResponse;
-import de.tekup.orderservice.dto.OrderStatusRequest;
+import de.tekup.orderservice.dto.request.OrderRequest;
+import de.tekup.orderservice.dto.request.OrderStatusRequest;
+import de.tekup.orderservice.dto.response.ApiResponse;
+import de.tekup.orderservice.dto.response.OrderResponse;
 import de.tekup.orderservice.service.OrderService;
 import de.tekup.orderservice.util.Mapper;
 import lombok.RequiredArgsConstructor;
@@ -26,13 +26,13 @@ public class OrderController {
     private final OrderService orderService;
     
     @GetMapping
-    public ResponseEntity<APIResponse<List<OrderResponse>>> getOrdersByStatus
+    public ResponseEntity<ApiResponse<List<OrderResponse>>> getOrdersByStatus
             (
                     @RequestParam(required = false) String status
             ) {
         List<OrderResponse> orders = orderService.getOrdersByStatus(status);
         
-        APIResponse<List<OrderResponse>> responseDTO = APIResponse
+        ApiResponse<List<OrderResponse>> responseDTO = ApiResponse
                 .<List<OrderResponse>>builder()
                 .status(SUCCESS)
                 .results(orders)
@@ -44,12 +44,12 @@ public class OrderController {
     }
     
     @PostMapping
-    public ResponseEntity<APIResponse<OrderResponse>> createProduct
+    public ResponseEntity<ApiResponse<OrderResponse>> createProduct
             (
                     @RequestBody @Valid OrderRequest orderRequest,
                     @RequestParam(required = false) String coupon
             ) {
-        APIResponse<OrderResponse> responseDTO = APIResponse
+        ApiResponse<OrderResponse> responseDTO = ApiResponse
                 .<OrderResponse>builder()
                 .status(SUCCESS)
                 .results(orderService.placeOrder(orderRequest, coupon))
@@ -59,13 +59,13 @@ public class OrderController {
     }
     
     @PatchMapping("/{uuid}")
-    public ResponseEntity<APIResponse<OrderResponse>> patchOrderStatus
+    public ResponseEntity<ApiResponse<OrderResponse>> patchOrderStatus
             (
                     @RequestBody @Valid OrderStatusRequest requestStatus,
                     @PathVariable String uuid
             ) {
         
-        APIResponse<OrderResponse> responseDTO = APIResponse
+        ApiResponse<OrderResponse> responseDTO = ApiResponse
                 .<OrderResponse>builder()
                 .status(SUCCESS)
                 .results(orderService.updateOrderStatus(requestStatus, uuid))

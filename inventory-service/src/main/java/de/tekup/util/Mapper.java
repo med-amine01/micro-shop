@@ -2,9 +2,9 @@ package de.tekup.util;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import de.tekup.dto.APIResponse;
-import de.tekup.dto.InventoryRequestDTO;
-import de.tekup.dto.InventoryResponseDTO;
+import de.tekup.dto.request.InventoryRequest;
+import de.tekup.dto.response.ApiResponse;
+import de.tekup.dto.response.InventoryResponse;
 import de.tekup.entity.Inventory;
 import de.tekup.exception.InventoryServiceException;
 import lombok.extern.slf4j.Slf4j;
@@ -16,7 +16,7 @@ public class Mapper {
     
     }
     
-    public static Inventory toEntity(InventoryRequestDTO request, String skuCode) {
+    public static Inventory toEntity(InventoryRequest request, String skuCode) {
         Inventory inventory = new Inventory();
         inventory.setSkuCode(skuCode);
         inventory.setQuantity(request.getQuantity());
@@ -24,8 +24,8 @@ public class Mapper {
         return inventory;
     }
     
-    public static InventoryResponseDTO toDto(Inventory inventory) {
-        InventoryResponseDTO responseDTO = new InventoryResponseDTO();
+    public static InventoryResponse toDto(Inventory inventory) {
+        InventoryResponse responseDTO = new InventoryResponse();
         responseDTO.setSkuCode(inventory.getSkuCode());
         responseDTO.setQuantity(inventory.getQuantity());
         responseDTO.setInStock(inventory.getQuantity() > 0);
@@ -44,8 +44,8 @@ public class Mapper {
         return null;
     }
     
-    public static <T> T getApiResponseData(ResponseEntity<APIResponse<T>> responseEntity) {
-        APIResponse<T> apiResponse = responseEntity.getBody();
+    public static <T> T getApiResponseData(ResponseEntity<ApiResponse<T>> responseEntity) {
+        ApiResponse<T> apiResponse = responseEntity.getBody();
         
         if (apiResponse != null && "FAILED".equals(apiResponse.getStatus())) {
             String errorDetails = apiResponse.getErrors().isEmpty()

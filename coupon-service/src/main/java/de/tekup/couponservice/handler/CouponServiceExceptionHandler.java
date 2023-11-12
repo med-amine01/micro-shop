@@ -1,7 +1,7 @@
 package de.tekup.couponservice.handler;
 
-import de.tekup.couponservice.dto.APIResponse;
-import de.tekup.couponservice.dto.ErrorDTO;
+import de.tekup.couponservice.dto.response.ApiResponse;
+import de.tekup.couponservice.dto.response.ErrorResponse;
 import de.tekup.couponservice.exception.CouponAlreadyExistsException;
 import de.tekup.couponservice.exception.CouponNotFoundException;
 import de.tekup.couponservice.exception.CouponServiceBusinessException;
@@ -23,13 +23,13 @@ public class CouponServiceExceptionHandler {
     // Bad Args exception handler
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public APIResponse<?> handleMethodArgumentException(MethodArgumentNotValidException exception) {
-        APIResponse<?> serviceResponse = new APIResponse<>();
-        List<ErrorDTO> errors = new ArrayList<>();
+    public ApiResponse<?> handleMethodArgumentException(MethodArgumentNotValidException exception) {
+        ApiResponse<?> serviceResponse = new ApiResponse<>();
+        List<ErrorResponse> errors = new ArrayList<>();
         exception.getBindingResult().getFieldErrors()
                 .forEach(error -> {
-                    ErrorDTO errorDTO = new ErrorDTO(error.getField(), error.getDefaultMessage());
-                    errors.add(errorDTO);
+                    ErrorResponse errorResponse = new ErrorResponse(error.getField(), error.getDefaultMessage());
+                    errors.add(errorResponse);
                 });
         serviceResponse.setStatus(FAILED);
         serviceResponse.setErrors(errors);
@@ -38,27 +38,27 @@ public class CouponServiceExceptionHandler {
     
     @ExceptionHandler(CouponAlreadyExistsException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public APIResponse<?> handleCouponAlreadyExistsException(CouponAlreadyExistsException exception) {
+    public ApiResponse<?> handleCouponAlreadyExistsException(CouponAlreadyExistsException exception) {
         return getServiceResponse(exception);
     }
     
     @ExceptionHandler(CouponNotFoundException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public APIResponse<?> handleCouponNotFoundException(CouponNotFoundException exception) {
+    public ApiResponse<?> handleCouponNotFoundException(CouponNotFoundException exception) {
         return getServiceResponse(exception);
     }
     
     
     @ExceptionHandler(CouponServiceBusinessException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public APIResponse<?> handleCouponServiceBusinessException(CouponServiceBusinessException exception) {
+    public ApiResponse<?> handleCouponServiceBusinessException(CouponServiceBusinessException exception) {
         return getServiceResponse(exception);
     }
 
-    private static APIResponse<?> getServiceResponse(Exception exception) {
-        APIResponse<?> serviceResponse = new APIResponse<>();
+    private static ApiResponse<?> getServiceResponse(Exception exception) {
+        ApiResponse<?> serviceResponse = new ApiResponse<>();
         serviceResponse.setStatus(FAILED);
-        serviceResponse.setErrors(Collections.singletonList(new ErrorDTO("", exception.getMessage())));
+        serviceResponse.setErrors(Collections.singletonList(new ErrorResponse("", exception.getMessage())));
         return serviceResponse;
     }
 }

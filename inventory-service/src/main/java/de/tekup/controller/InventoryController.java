@@ -1,8 +1,8 @@
 package de.tekup.controller;
 
-import de.tekup.dto.APIResponse;
-import de.tekup.dto.InventoryRequestDTO;
-import de.tekup.dto.InventoryResponseDTO;
+import de.tekup.dto.request.InventoryRequest;
+import de.tekup.dto.response.ApiResponse;
+import de.tekup.dto.response.InventoryResponse;
 import de.tekup.service.InventoryService;
 import de.tekup.util.Mapper;
 import lombok.RequiredArgsConstructor;
@@ -25,12 +25,12 @@ public class InventoryController {
     private final InventoryService inventoryService;
     
     @GetMapping
-    public ResponseEntity<APIResponse<List<InventoryResponseDTO>>> getAllInventories() {
-        List<InventoryResponseDTO> inventories = inventoryService.getInventories();
+    public ResponseEntity<ApiResponse<List<InventoryResponse>>> getAllInventories() {
+        List<InventoryResponse> inventories = inventoryService.getInventories();
         
         // Builder Design pattern (to avoid complex object creation)
-        APIResponse<List<InventoryResponseDTO>> responseDTO = APIResponse
-                .<List<InventoryResponseDTO>>builder()
+        ApiResponse<List<InventoryResponse>> responseDTO = ApiResponse
+                .<List<InventoryResponse>>builder()
                 .status(SUCCESS)
                 .results(inventories)
                 .build();
@@ -40,15 +40,15 @@ public class InventoryController {
     }
     
     @GetMapping("/product/init/{skuCode}")
-    public ResponseEntity<APIResponse<InventoryResponseDTO>> initializeProductQuantity
+    public ResponseEntity<ApiResponse<InventoryResponse>> initializeProductQuantity
             (
                     @PathVariable("skuCode") @NotBlank @Size(min = 2) String skuCode
             ) throws Exception {
         
-        InventoryResponseDTO prodResponseDto = inventoryService.initQuantityFromQueue(skuCode);
+        InventoryResponse prodResponseDto = inventoryService.initQuantityFromQueue(skuCode);
         
-        APIResponse<InventoryResponseDTO> responseDTO = APIResponse
-                .<InventoryResponseDTO>builder()
+        ApiResponse<InventoryResponse> responseDTO = ApiResponse
+                .<InventoryResponse>builder()
                 .status(SUCCESS)
                 .results(prodResponseDto)
                 .build();
@@ -62,21 +62,21 @@ public class InventoryController {
     // http://inventory-service/api/v1/inventories/product/check?skuCode=iphone_13,iphone_13_red
     @GetMapping("/product/check")
     @ResponseStatus(HttpStatus.OK)
-    public List<InventoryResponseDTO> isInStock(@RequestParam List<String> skuCode) {
+    public List<InventoryResponse> isInStock(@RequestParam List<String> skuCode) {
         return inventoryService.isInStock(skuCode);
     }
     
     @PutMapping("/product/quantity/{skuCode}")
-    public ResponseEntity<APIResponse<InventoryResponseDTO>> updateInventoryQuantity
+    public ResponseEntity<ApiResponse<InventoryResponse>> updateInventoryQuantity
             (
-                    @RequestBody @Valid InventoryRequestDTO requestDTO,
+                    @RequestBody @Valid InventoryRequest requestDTO,
                     @PathVariable("skuCode") @NotBlank @Size(min = 2) String skuCode
             ) throws Exception {
         
-        InventoryResponseDTO prodResponseDto = inventoryService.updateQuantity(requestDTO, skuCode);
+        InventoryResponse prodResponseDto = inventoryService.updateQuantity(requestDTO, skuCode);
         
-        APIResponse<InventoryResponseDTO> responseDTO = APIResponse
-                .<InventoryResponseDTO>builder()
+        ApiResponse<InventoryResponse> responseDTO = ApiResponse
+                .<InventoryResponse>builder()
                 .status(SUCCESS)
                 .results(prodResponseDto)
                 .build();

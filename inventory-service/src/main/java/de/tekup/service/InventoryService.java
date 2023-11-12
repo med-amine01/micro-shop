@@ -1,9 +1,9 @@
 package de.tekup.service;
 
-import de.tekup.dto.APIResponse;
-import de.tekup.dto.InventoryRequestDTO;
-import de.tekup.dto.InventoryResponseDTO;
-import de.tekup.dto.ProductResponse;
+import de.tekup.dto.request.InventoryRequest;
+import de.tekup.dto.response.ApiResponse;
+import de.tekup.dto.response.InventoryResponse;
+import de.tekup.dto.response.ProductResponse;
 import de.tekup.entity.Inventory;
 import de.tekup.exception.InventoryAlreadyExistsException;
 import de.tekup.exception.InventoryNotFoundException;
@@ -35,7 +35,7 @@ public class InventoryService {
     @Value("${microservices.product-service.uri}")
     private String PRODUCT_SERVICE_URL;
     
-    public InventoryResponseDTO initQuantityFromQueue(String skuCode) throws Exception {
+    public InventoryResponse initQuantityFromQueue(String skuCode) throws Exception {
         try {
             // Initialize product with qte = 0
             // Read from RabbitMq when a new product is created and pushed to the queue
@@ -59,7 +59,7 @@ public class InventoryService {
         }
     }
     
-    public List<InventoryResponseDTO> getInventories() throws InventoryServiceException {
+    public List<InventoryResponse> getInventories() throws InventoryServiceException {
         try {
             List<Inventory> inventories = inventoryRepository.findAll();
             
@@ -75,10 +75,10 @@ public class InventoryService {
     }
     
     @Transactional(readOnly = true)
-    public List<InventoryResponseDTO> isInStock(List<String> skuCode) {
+    public List<InventoryResponse> isInStock(List<String> skuCode) {
         return inventoryRepository.findBySkuCodeIn(skuCode).stream()
                 .map(inventory ->
-                        InventoryResponseDTO.builder()
+                        InventoryResponse.builder()
                                 .skuCode(inventory.getSkuCode())
                                 .isInStock(inventory.getQuantity() > 0)
                                 .quantity(inventory.getQuantity())
@@ -87,7 +87,7 @@ public class InventoryService {
     }
     
     
-    public InventoryResponseDTO updateQuantity(InventoryRequestDTO requestDTO, String skuCode) throws Exception {
+    public InventoryResponse updateQuantity(InventoryRequest requestDTO, String skuCode) throws Exception {
         try {
             Inventory inventory = inventoryRepository.findBySkuCode(skuCode)
                     .orElseThrow(() -> new InventoryNotFoundException(skuCode + " not found"));
@@ -124,13 +124,13 @@ public class InventoryService {
         try {
             ProductResponse productReq = new ProductResponse();
             productReq.setEnabled(enabled);
-            ResponseEntity<APIResponse<ProductResponse>> productResponseEntity = webClientBuilder
+            ResponseEntity<ApiResponse<ProductResponse>> productResponseEntity = webClientBuilder
                     .build()
                     .put()
                     .uri(PRODUCT_SERVICE_URL + "/" + skuCode)
                     .bodyValue(productReq)
                     .retrieve()
-                    .toEntity(new ParameterizedTypeReference<APIResponse<ProductResponse>>() {
+                    .toEntity(new ParameterizedTypeReference<ApiResponse<ProductResponse>>() {
                     })
                     .block();
             

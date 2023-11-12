@@ -1,6 +1,6 @@
 package de.tekup.couponservice.event;
 
-import de.tekup.couponservice.dto.CouponResponse;
+import de.tekup.couponservice.dto.response.CouponResponse;
 import lombok.Getter;
 import org.springframework.context.ApplicationEvent;
 

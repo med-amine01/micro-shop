@@ -2,9 +2,9 @@ package de.tekup.couponservice.util;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import de.tekup.couponservice.dto.CouponRequest;
-import de.tekup.couponservice.dto.CouponRequestUpdate;
-import de.tekup.couponservice.dto.CouponResponse;
+import de.tekup.couponservice.dto.request.CouponRequest;
+import de.tekup.couponservice.dto.request.CouponUpdateRequest;
+import de.tekup.couponservice.dto.response.CouponResponse;
 import de.tekup.couponservice.entity.Coupon;
 import lombok.extern.slf4j.Slf4j;
 
@@ -24,7 +24,7 @@ public class Mapper {
         return coupon;
     }
 
-    public static Coupon toEntity(CouponRequestUpdate requestUpdate, Coupon couponInDb) {
+    public static Coupon toEntity(CouponUpdateRequest requestUpdate, Coupon couponInDb) {
         Coupon coupon = new Coupon();
         coupon.setCode(couponInDb.getCode());
         String name = requestUpdate.getName() != null ? requestUpdate.getName() : couponInDb.getName();

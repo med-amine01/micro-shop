@@ -1,7 +1,7 @@
 package de.tekup.controller;
 
 import de.tekup.dto.request.UserRequest;
-import de.tekup.dto.response.APIResponse;
+import de.tekup.dto.response.ApiResponse;
 import de.tekup.dto.response.UserResponse;
 import de.tekup.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -37,10 +37,10 @@ public class UserController {
 //    }
     
     @PostMapping
-    public ResponseEntity<APIResponse<UserResponse>> createUser(@RequestBody @Valid UserRequest userRequest) {
+    public ResponseEntity<ApiResponse<UserResponse>> createUser(@RequestBody @Valid UserRequest userRequest) {
         UserResponse userResponse = userService.saveUser(userRequest);
         
-        APIResponse<UserResponse> response = APIResponse
+        ApiResponse<UserResponse> response = ApiResponse
                 .<UserResponse>builder()
                 .status(SUCCESS)
                 .results(userResponse)
