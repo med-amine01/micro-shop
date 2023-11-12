@@ -34,7 +34,9 @@ spring:
           uri: lb://INVENTORY-SERVICE
           predicates:
             - Path=/api/v1/inventories/**
-#        - id: user-service
-#          uri: lb://USER-SERVICE
-#          predicates:
-#            - Path=/health
+        ## IDENTITY-SERVICE ROUTE
+        - id: identity-service
+          uri: lb://IDENTITY-SERVICE
+          predicates:
+            - Path=/api/v1/auth/**
+            - Path=/api/v1/users/**
