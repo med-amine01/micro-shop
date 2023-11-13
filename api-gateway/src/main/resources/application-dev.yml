@@ -18,3 +18,11 @@ spring:
           uri: ${dev.eureka.url}
           predicates:
             - Path=/eureka/**
+
+        ## COUPON-SERVICE ROUTE
+        - id: coupon-service
+          uri: lb://COUPON-SERVICE
+          predicates:
+            - Path=/api/v1/coupons/**
+          filters:
+            - AuthenticationFilter

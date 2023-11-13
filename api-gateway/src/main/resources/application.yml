@@ -19,24 +19,37 @@ spring:
           uri: lb://PRODUCT-SERVICE
           predicates:
             - Path=/api/v1/products/**
+          filters:
+            - AuthenticationFilter
+
         ## COUPON-SERVICE ROUTE
         - id: coupon-service
           uri: lb://COUPON-SERVICE
           predicates:
             - Path=/api/v1/coupons/**
+          filters:
+            - AuthenticationFilter
+
         ## ORDER-SERVICE ROUTE
         - id: order-service
           uri: lb://ORDER-SERVICE
           predicates:
             - Path=/api/v1/orders/**
+          filters:
+            - AuthenticationFilter
+
         ## INVENTORY-SERVICE ROUTE
         - id: inventory-service
           uri: lb://INVENTORY-SERVICE
           predicates:
             - Path=/api/v1/inventories/**
+          filters:
+            - AuthenticationFilter
+
         ## IDENTITY-SERVICE ROUTE
         - id: identity-service
           uri: lb://IDENTITY-SERVICE
           predicates:
             - Path=/api/v1/auth/**
             - Path=/api/v1/users/**
+            - Path=/api/v1/roles/**
