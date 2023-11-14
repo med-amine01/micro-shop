@@ -6,50 +6,79 @@ spring:
     name: api-gateway
   profiles:
     active: dev
-
+## Api gateway config (routes)
   cloud:
     gateway:
-      discovery:
-        locator:
-          enabled: true
-          lower-case-service-id: true
       routes:
-        ## PRODUCT-SERVICE ROUTE
-        - id: product-service
-          uri: lb://PRODUCT-SERVICE
-          predicates:
-            - Path=/api/v1/products/**
-          filters:
-            - AuthenticationFilter
-
-        ## COUPON-SERVICE ROUTE
         - id: coupon-service
-          uri: lb://COUPON-SERVICE
+          uri: lb://coupon-service
           predicates:
-            - Path=/api/v1/coupons/**
+            - Path=/coupon-service/api/v1/coupons/**
+            #- Header=Authorization, Bearer (.*)
           filters:
-            - AuthenticationFilter
+            - RemoveRequestHeader=Cookie
+            - RewritePath=/coupon-service/(?<segment>.*), /${segment}
+            - AuthorizationHeaderFilter
 
-        ## ORDER-SERVICE ROUTE
+        - id: product-service
+          uri: lb://product-service
+          predicates:
+            - Path=/product-service/api/v1/products/**
+            - Header=Authorization, Bearer (.*)
+          filters:
+            - RemoveRequestHeader=Cookie
+            - RewritePath=/product-service/(?<segment>.*), /${segment}
+
         - id: order-service
-          uri: lb://ORDER-SERVICE
+          uri: lb://order-service
           predicates:
-            - Path=/api/v1/orders/**
+            - Path=/order-service/api/v1/orders/**
+            - Header=Authorization, Bearer (.*)
           filters:
-            - AuthenticationFilter
+            - RemoveRequestHeader=Cookie
+            - RewritePath=/order-service/(?<segment>.*), /${segment}
 
-        ## INVENTORY-SERVICE ROUTE
         - id: inventory-service
-          uri: lb://INVENTORY-SERVICE
+          uri: lb://inventory-service
           predicates:
-            - Path=/api/v1/inventories/**
+            - Path=/inventory-service/api/v1/inventories/**
+            - Header=Authorization, Bearer (.*)
           filters:
-            - AuthenticationFilter
+            - RemoveRequestHeader=Cookie
+            - RewritePath=/inventory-service/(?<segment>.*), /${segment}
 
-        ## IDENTITY-SERVICE ROUTE
-        - id: identity-service
-          uri: lb://IDENTITY-SERVICE
+        - id: identity-service-authentication
+          uri: lb://identity-service
           predicates:
-            - Path=/api/v1/auth/**
-            - Path=/api/v1/users/**
-            - Path=/api/v1/roles/**
+            - Path=/identity-service/api/v1/auth/token
+            - Method=POST
+          filters:
+            - RemoveRequestHeader=Cookie
+            - RewritePath=/identity-service/(?<segment>.*), /${segment}
+
+        - id: identity-service-register-user
+          uri: lb://identity-service
+          predicates:
+            - Path=/identity-service/api/v1/users
+            - Method=POST
+          filters:
+            - RemoveRequestHeader=Cookie
+            - RewritePath=/identity-service/(?<segment>.*), /${segment}
+
+        - id: identity-service-get-roles
+          uri: lb://identity-service
+          predicates:
+            - Path=/identity-service/api/v1/roles
+            - Method=GET
+          filters:
+            - RemoveRequestHeader=Cookie
+            - RewritePath=/identity-service/(?<segment>.*), /${segment}
+
+        - id: identity-service-create-roles
+          uri: lb://identity-service
+          predicates:
+            - Path=/identity-service/api/v1/roles
+            - Method=POST
+          filters:
+            - RemoveRequestHeader=Cookie
+            - RewritePath=/identity-service/(?<segment>.*), /${segment}
