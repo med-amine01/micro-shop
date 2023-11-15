@@ -15,7 +15,7 @@ import java.util.function.Function;
 @Component
 public class JwtUtil {
     
-    @Value("${secret-key}")
+    @Value("${secret.key}")
     private String SECRET_KEY;
     
     // Token validity is one hour
