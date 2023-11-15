@@ -14,7 +14,6 @@ spring:
           uri: lb://coupon-service
           predicates:
             - Path=/coupon-service/api/v1/coupons/**
-            #- Header=Authorization, Bearer (.*)
           filters:
             - RemoveRequestHeader=Cookie
             - RewritePath=/coupon-service/(?<segment>.*), /${segment}
@@ -24,28 +23,28 @@ spring:
           uri: lb://product-service
           predicates:
             - Path=/product-service/api/v1/products/**
-            - Header=Authorization, Bearer (.*)
           filters:
             - RemoveRequestHeader=Cookie
             - RewritePath=/product-service/(?<segment>.*), /${segment}
+            - AuthorizationHeaderFilter
 
         - id: order-service
           uri: lb://order-service
           predicates:
             - Path=/order-service/api/v1/orders/**
-            - Header=Authorization, Bearer (.*)
           filters:
             - RemoveRequestHeader=Cookie
             - RewritePath=/order-service/(?<segment>.*), /${segment}
+            - AuthorizationHeaderFilter
 
         - id: inventory-service
           uri: lb://inventory-service
           predicates:
             - Path=/inventory-service/api/v1/inventories/**
-            - Header=Authorization, Bearer (.*)
           filters:
             - RemoveRequestHeader=Cookie
             - RewritePath=/inventory-service/(?<segment>.*), /${segment}
+            - AuthorizationHeaderFilter
 
         - id: identity-service-authentication
           uri: lb://identity-service

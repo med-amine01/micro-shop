@@ -1,28 +1,29 @@
 package de.tekup.apigateway.filter;
 
-import io.jsonwebtoken.*;
-import org.springframework.beans.factory.annotation.Autowired;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.io.Decoders;
+import io.jsonwebtoken.security.Keys;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
-import org.springframework.core.env.Environment;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
-import io.jsonwebtoken.Header;
-import javax.crypto.SecretKey;
-import javax.crypto.spec.SecretKeySpec;
-import java.util.Base64;
+import java.security.Key;
 
 @Component
+@Slf4j
 public class AuthorizationHeaderFilter extends AbstractGatewayFilterFactory<AuthorizationHeaderFilter.Config> {
     
-    @Autowired
-    Environment env;
+    @Value("${secret.key}")
+    private String secretKey;
     
     public AuthorizationHeaderFilter() {
         super(Config.class);
@@ -39,9 +40,16 @@ public class AuthorizationHeaderFilter extends AbstractGatewayFilterFactory<Auth
             }
             
             String authorizationHeader = request.getHeaders().get(HttpHeaders.AUTHORIZATION).get(0);
-            String jwt = authorizationHeader.replace("Bearer", "");
+            if (!authorizationHeader.startsWith("Bearer ")) {
+                return onError(exchange, "Jwt token doesn't start with Bearer", HttpStatus.UNAUTHORIZED);
+            }
             
-            if (!isJwtValid(jwt)) {
+            String jwt = authorizationHeader.replace("Bearer", "").trim();
+            
+            try {
+                validateJwt(jwt);
+            } catch (Exception e) {
+                log.error(e.getMessage());
                 return onError(exchange, "Jwt token not valid", HttpStatus.UNAUTHORIZED);
             }
             
@@ -49,38 +57,27 @@ public class AuthorizationHeaderFilter extends AbstractGatewayFilterFactory<Auth
         };
     }
     
-    private boolean isJwtValid(String jwt) {
-        boolean returnValue = true;
-        
-        String subject = null;
-        String tokenSecret = env.getProperty("secret-key");
-        byte[] secretKeyBytes = Base64.getEncoder().encode(tokenSecret.getBytes());
-        SecretKey signingKey = new SecretKeySpec(secretKeyBytes, SignatureAlgorithm.HS512.getJcaName());
-        
-        JwtParser jwtParser = Jwts.parserBuilder()
-                .setSigningKey(signingKey)
-                .build();
-        
-        try {
-            Jwt<Header, Claims> parsedToken = jwtParser.parse(jwt);
-            subject = parsedToken.getBody().getSubject();
-            
-        } catch (Exception ex) {
-            returnValue = false;
-        }
-        
-        if (subject == null || subject.isEmpty()) {
-            returnValue = false;
-        }
-        
-        return returnValue;
+    
+    private void validateJwt(final String token) {
+        Jwts.parserBuilder().setSigningKey(getSignKey()).build().parseClaimsJws(token);
+    }
+    
+    
+    private Key getSignKey() {
+        byte[] keyBytes = Decoders.BASE64.decode(secretKey);
+        return Keys.hmacShaKeyFor(keyBytes);
     }
     
     private Mono<Void> onError(ServerWebExchange exchange, String err, HttpStatus httpStatus) {
         ServerHttpResponse response = exchange.getResponse();
         response.setStatusCode(httpStatus);
+        response.getHeaders().setContentType(MediaType.APPLICATION_JSON);
         
-        return response.setComplete();
+        // Create a JSON response body with the error message
+        String responseBody = "{\"error\": \"" + err + "\"}";
+        
+        // Write the JSON response body to the response
+        return response.writeWith(Mono.just(response.bufferFactory().wrap(responseBody.getBytes())));
     }
     
     public static class Config {
