@@ -9,7 +9,7 @@
         <version>1.1.1</version>
     </parent>
 
-    <artifactId>discovery-server</artifactId>
+    <artifactId>discovery-service</artifactId>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

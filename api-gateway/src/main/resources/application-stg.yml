@@ -1,11 +1,3 @@
-spring:
-  application:
-    name: api-gateway
-
-  # Config server
-  config:
-    import: configserver:${stg.config.server.url}
-
 # Discovery server
 eureka:
   client:
@@ -16,3 +8,8 @@ eureka:
   instance:
     instance-id: ${spring.application.name}:${spring.application.instance-id:${random.value}}
     prefer-ip-address: true
+
+# Spring config
+spring:
+  config:
+    import: configserver:${stg.config.server.url}

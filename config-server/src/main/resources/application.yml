@@ -4,8 +4,8 @@ server:
 spring:
   application:
     name: config-server
-  profiles:
-    active: dev
+#  profiles:
+#     stg
   cloud:
     config:
       server:

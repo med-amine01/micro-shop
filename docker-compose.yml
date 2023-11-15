@@ -1,0 +1,165 @@
+version: '3'
+
+services:
+  mysql-db:
+    container_name: mysql-db
+    image: mysql:latest
+    restart: always
+    environment:
+      - MYSQL_ROOT_PASSWORD=Mad123**
+      - MYSQL_ROOT_HOST=%
+    networks:
+      - my-network
+    ports:
+      - "6666:3306"
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://mysql-db:3306" ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  discovery-service:
+    container_name: discovery-service
+    build:
+      context: ./discovery-service
+      dockerfile: Dockerfile
+    networks:
+      - my-network
+    ports:
+      - "8761:8761"
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://discovery-service:8761/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  config-server:
+    container_name: config-server
+    build:
+      context: ./config-server
+      dockerfile: Dockerfile
+    networks:
+      - my-network
+    ports:
+      - "8888:8888"
+    environment:
+      - SPRING_PROFILES_ACTIVE=stg
+    depends_on:
+      discovery-service:
+        condition: service_healthy
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://config-server:8888/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  api-gateway:
+    container_name: api-gateway
+    build:
+      context: ./api-gateway
+      dockerfile: Dockerfile
+    restart: on-failure
+    networks:
+      - my-network
+    ports:
+      - "8765:8765"
+    environment:
+      - SPRING_PROFILES_ACTIVE=stg
+    depends_on:
+      config-server:
+        condition: service_healthy
+      discovery-service:
+        condition: service_healthy
+
+  rabbitmq:
+    container_name: rabbitmq
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    hostname: rabbitmq
+    networks:
+      - my-network
+    healthcheck:
+      test: [ "CMD", "rabbitmqctl", "status" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  identity-service:
+    container_name: identity-service
+    build:
+      context: ./identity-service
+      dockerfile: Dockerfile
+    networks:
+      - my-network
+    environment:
+      - SPRING_PROFILES_ACTIVE=stg
+    depends_on:
+      mysql-db:
+        condition: service_healthy
+      api-gateway:
+        condition: service_started
+    volumes:
+      - ./target/:/app/target
+
+  coupon-service:
+    container_name: coupon-service
+    build:
+      context: ./coupon-service
+      dockerfile: Dockerfile
+    networks:
+      - my-network
+    environment:
+      - SPRING_PROFILES_ACTIVE=stg
+    depends_on:
+      - identity-service
+      - rabbitmq
+    volumes:
+      - ./target/:/app/target
+
+  product-service:
+    container_name: product-service
+    build:
+      context: ./product-service
+      dockerfile: Dockerfile
+    networks:
+      - my-network
+    environment:
+      - SPRING_PROFILES_ACTIVE=stg
+    depends_on:
+      - coupon-service
+    volumes:
+      - ./target/:/app/target
+
+  inventory-service:
+    container_name: inventory-service
+    build:
+      context: ./inventory-service
+      dockerfile: Dockerfile
+    networks:
+      - my-network
+    environment:
+      - SPRING_PROFILES_ACTIVE=stg
+    depends_on:
+      - product-service
+    volumes:
+      - ./target/:/app/target
+
+  order-service:
+    container_name: order-service
+    build:
+      context: ./order-service
+      dockerfile: Dockerfile
+    networks:
+      - my-network
+    environment:
+      - SPRING_PROFILES_ACTIVE=stg
+    depends_on:
+      - config-server
+    volumes:
+      - ./target/:/app/target
+
+networks:
+  my-network:
+    driver: bridge
