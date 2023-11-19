@@ -1,23 +1,24 @@
 # Start Docker containers using docker-compose
 .PHONY: start
 start:
-	@echo "🚀 Starting docker micro-shop services..."
-	@echo "   _                          _                 "
-	@echo "  _ __ ___ (_) ___ _ __ ___        ___| |__   ___  _ __  "
-	@echo " | '_ ` _ \| |/ __| '__/ _ \ _____/ __| '_ \ / _ \| '_ \ "
-	@echo " | | | | | | | (__| | | (_) |_____\__ \ | | | (_) | |_) |"
-	@echo " |_| |_| |_|_|\___|_|  \___/      |___/_| |_|\___/| .__/ "
-	@echo "                                                  |_|     "
+	@echo "\033[32m🚀 Starting micro-shop docker services...\033[0m"
 	@docker-compose -f docker-compose.yml up -d
-	@echo "✅ Docker Compose services started successfully!"
-
+	@echo "            _                          _                 "
+	@echo "           (_)                        | |                "
+	@echo "  _ __ ___  _  ___ _ __ ___ ______ ___| |__   ___  _ __  "
+	@echo " | '_\`  _ \| |/ __| '__/ _ \______/ __| '_ \ / _ \| '_ \ "
+	@echo " | | | | | | | (__| | | (_) |     \__ \ | | | (_) | |_) |"
+	@echo " |_| |_| |_|_|\___|_|  \___/      |___/_| |_|\___/| .__/ "
+	@echo "                                                  | |    "
+	@echo "                                                  |_|    "
+	@echo "\033[32m✅ micro-shop services started successfully!\033[0m"
 
 # Stop Docker containers using docker-compose
 .PHONY: stop
 stop:
-	@echo "🛑 Stopping micro-shop services..."
+	@echo "Stopping micro-shop docker services..."
 	@docker-compose -f docker-compose.yml down
-	@echo "✅ Docker micro-shop services stopped!"
+	@echo "🛑 micro-shop docker services stopped!"
 
 
 # Kill all containers and images
@@ -42,7 +43,3 @@ purge-images:
 rebuild-all:
 	@mvn clean package -DskipTests
 
-# Stop Docker containers using docker-compose
-.PHONY: stop
-stop:
-	@docker-compose -f docker-compose.yml stop
