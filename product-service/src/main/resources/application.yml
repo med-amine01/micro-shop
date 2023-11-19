@@ -1,8 +1,17 @@
+server:
+  port: 0
+
 spring:
   application:
     name: product-service
   profiles:
     active: dev
+  rabbitmq:
+    host: rabbitmq
+    template:
+      default-receive-queue: ${broker.product.queue}
+      exchange: ${broker.product.exchange}
+      routing-key: ${broker.product.routing-key}
 
 rabbitmq:
   queue: ${broker.product.queue}

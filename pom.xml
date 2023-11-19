@@ -18,7 +18,7 @@
   <packaging>pom</packaging>
   <modules>
     <module>api-gateway</module>
-    <module>discovery-server</module>
+    <module>discovery-service</module>
     <module>config-server</module>
     <module>coupon-service</module>
     <module>product-service</module>
