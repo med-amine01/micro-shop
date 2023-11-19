@@ -4,7 +4,9 @@ server:
 spring:
   application:
     name: api-gateway
-
+  profiles:
+    active: dev
+## Api gateway config (routes)
   cloud:
     gateway:
       routes:
