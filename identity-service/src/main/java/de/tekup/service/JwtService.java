@@ -2,6 +2,7 @@ package de.tekup.service;
 
 import de.tekup.dto.request.AuthRequest;
 import de.tekup.dto.response.AuthResponse;
+import de.tekup.entity.Role;
 import de.tekup.entity.User;
 import de.tekup.repository.UserRepository;
 import de.tekup.util.JwtUtil;
@@ -12,6 +13,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -19,6 +21,8 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -68,11 +72,13 @@ public class JwtService implements UserDetailsService {
         return Mapper.tokenToAuthResponse(newGeneratedToken);
     }
     
-    private Set getAuthorities(User user) {
-        Set<SimpleGrantedAuthority> authorities = new HashSet<>();
+    private Collection<GrantedAuthority> getAuthorities(User user) {
+        Collection<GrantedAuthority> authorities = new ArrayList<>();
         user.getRoles().forEach(role -> {
-            //another way to do this you can add new SimpleGrantedAuthority("ROLE_" + role.getRoleName())
             authorities.add(new SimpleGrantedAuthority(role.getRoleName()));
+            role.getAuthorities().forEach(authority -> {
+                authorities.add(new SimpleGrantedAuthority(authority.getName()));
+            });
         });
         
         return authorities;

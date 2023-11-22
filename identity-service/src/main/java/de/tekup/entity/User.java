@@ -9,6 +9,7 @@ import java.util.Set;
 @Entity
 @Data
 @EqualsAndHashCode(callSuper = true)
+@Table(name = "users")
 public class User extends AbstractEntity {
     
     private String name;
@@ -18,12 +19,11 @@ public class User extends AbstractEntity {
     
     private String password;
     
-    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-    //this will create third table called USER_ROLE with two columns =>  USER_ID ; ROLE_ID
+    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.PERSIST)
     @JoinTable(
-            name = "USER_ROLE",
-            joinColumns = {@JoinColumn(name = "USER_ID")},
-            inverseJoinColumns = {@JoinColumn(name = "ROLE_ID")}
+            name = "users_roles",
+            joinColumns = {@JoinColumn(name = "users_id", referencedColumnName = "id")},
+            inverseJoinColumns = {@JoinColumn(name = "roles_id", referencedColumnName = "id")}
     )
     private Set<Role> roles;
 }
