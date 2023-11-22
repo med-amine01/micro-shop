@@ -55,6 +55,13 @@ public class IdentityServiceHandler {
         return serviceResponse;
     }
     
+    // Authority Service Exception handler
+    @ExceptionHandler(AuthorityServiceException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ApiResponse<?> handleRoleServiceException(AuthorityServiceException exception) {
+        return getServiceResponse(exception);
+    }
+    
     // Role Service Exception handler
     @ExceptionHandler(RoleServiceException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)

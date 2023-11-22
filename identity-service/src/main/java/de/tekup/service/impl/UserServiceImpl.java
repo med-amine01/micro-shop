@@ -85,37 +85,4 @@ public class UserServiceImpl implements UserService {
         }
         return persistedRoles;
     }
-    
-    @PostConstruct
-    private void createAdminUser() {
-        initRoles();
-        User admin = new User();
-        admin.setName("admin-01");
-        admin.setPassword(passwordEncoder.encode("test"));
-        admin.setEmail("mad.chicken211@gmail.com");
-        userRepository.save(admin);
-        
-        Set<Role> adminRole = new HashSet<>();
-        Role roleAdmin = roleRepository.findByRoleName("ROLE_ADMIN");
-        adminRole.add(roleAdmin);
-
-        admin.setRoles(adminRole);
-        // Save admin
-        userRepository.save(admin);
-    }
-    
-    
-    public void initRoles() {
-        List<RoleRequest> roleRequests = new ArrayList<>();
-        roleRequests.add(new RoleRequest("ROLE_ADMIN"));
-        roleRequests.add(new RoleRequest("ROLE_USER"));
-        
-        roleRequests.forEach(roleRequest -> {
-            Role existingRole = roleRepository.findByRoleName(roleRequest.getRoleName());
-            if (existingRole == null) {
-                roleRepository.save(Mapper.roleRequestToRole(roleRequest));
-            }
-        });
-    }
-
 }
