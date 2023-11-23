@@ -11,6 +11,8 @@ import de.tekup.entity.Role;
 import de.tekup.entity.User;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -27,6 +29,9 @@ public class Mapper {
         RoleResponse roleResponse = new RoleResponse();
         roleResponse.setRoleName(role.getRoleName());
         roleResponse.setCreatedAt(role.getCreatedAt());
+        List<String> authorities = new ArrayList<>();
+        role.getAuthorities().forEach(authority -> authorities.add(authority.getName()));
+        roleResponse.setAuthorities(authorities);
         
         return roleResponse;
     }
@@ -34,6 +39,7 @@ public class Mapper {
     public static Role roleRequestToRole(RoleRequest roleRequest) {
         Role role = new Role();
         role.setRoleName(roleRequest.getRoleName());
+        role.setAuthorities(roleRequest.getAuthorities());
         
         return role;
     }
@@ -58,16 +64,16 @@ public class Mapper {
         user.setEmail(userRequest.getEmail());
         user.setPassword(userRequest.getUserPassword());
         // Get set roleRequest and map it to role (entity)
-//        Set<RoleRequest> roleRequests = userRequest.getRoles();
-//        Set<Role> roles = null;
-//
-//        if (null != roleRequests) {
-//            roles = roleRequests.stream()
-//                    .map(Mapper::roleRequestToRole)
-//                    .collect(Collectors.toSet());
-//        }
-//
-//        user.setRoles(roles);
+        Set<RoleRequest> roleRequests = userRequest.getRoles();
+        Set<Role> roles = null;
+
+        if (null != roleRequests) {
+            roles = roleRequests.stream()
+                    .map(Mapper::roleRequestToRole)
+                    .collect(Collectors.toSet());
+        }
+
+        user.setRoles(roles);
 
         return user;
     }

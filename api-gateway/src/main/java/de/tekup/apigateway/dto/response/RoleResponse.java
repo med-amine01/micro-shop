@@ -1,4 +1,4 @@
-package de.tekup.dto.response;
+package de.tekup.apigateway.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

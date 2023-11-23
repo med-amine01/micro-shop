@@ -10,6 +10,7 @@ spring:
   cloud:
     gateway:
       routes:
+        ## Coupon-service
         - id: coupon-service
           uri: lb://coupon-service
           predicates:
@@ -19,6 +20,7 @@ spring:
             - RewritePath=/coupon-service/(?<segment>.*), /${segment}
             - AuthorizationHeaderFilter
 
+        ## Product-service
         - id: product-service
           uri: lb://product-service
           predicates:
@@ -28,6 +30,7 @@ spring:
             - RewritePath=/product-service/(?<segment>.*), /${segment}
             - AuthorizationHeaderFilter
 
+        ## Order-service
         - id: order-service
           uri: lb://order-service
           predicates:
@@ -37,6 +40,7 @@ spring:
             - RewritePath=/order-service/(?<segment>.*), /${segment}
             - AuthorizationHeaderFilter
 
+        ## Inventory-service
         - id: inventory-service
           uri: lb://inventory-service
           predicates:
@@ -46,6 +50,7 @@ spring:
             - RewritePath=/inventory-service/(?<segment>.*), /${segment}
             - AuthorizationHeaderFilter
 
+        ## Identity-service::Authentication
         - id: identity-service-authentication
           uri: lb://identity-service
           predicates:
@@ -55,7 +60,19 @@ spring:
             - RemoveRequestHeader=Cookie
             - RewritePath=/identity-service/(?<segment>.*), /${segment}
 
-        - id: identity-service-register-user
+        ## Identity-service::Get-all-users
+        - id: identity-service-get-all-users
+          uri: lb://identity-service
+          predicates:
+            - Path=/identity-service/api/v1/users
+            - Method=GET
+          filters:
+            - RemoveRequestHeader=Cookie
+            - RewritePath=/identity-service/(?<segment>.*), /${segment}
+            - AuthorizationHeaderFilter
+
+        ## Identity-service::POST-user
+        - id: identity-service-post-user
           uri: lb://identity-service
           predicates:
             - Path=/identity-service/api/v1/users
@@ -64,6 +81,18 @@ spring:
             - RemoveRequestHeader=Cookie
             - RewritePath=/identity-service/(?<segment>.*), /${segment}
 
+        ## Identity-service::GET-user
+        - id: identity-service-get-user
+          uri: lb://identity-service
+          predicates:
+            - Path=/identity-service/api/v1/users/**
+            - Method=GET
+          filters:
+            - RemoveRequestHeader=Cookie
+            - RewritePath=/identity-service/(?<segment>.*), /${segment}
+            - AuthorizationHeaderFilter
+
+        ## Identity-service::GET-roles
         - id: identity-service-get-roles
           uri: lb://identity-service
           predicates:
@@ -72,7 +101,9 @@ spring:
           filters:
             - RemoveRequestHeader=Cookie
             - RewritePath=/identity-service/(?<segment>.*), /${segment}
+            - AuthorizationHeaderFilter
 
+        ## Identity-service::POST-role
         - id: identity-service-create-roles
           uri: lb://identity-service
           predicates:
@@ -81,3 +112,4 @@ spring:
           filters:
             - RemoveRequestHeader=Cookie
             - RewritePath=/identity-service/(?<segment>.*), /${segment}
+            - AuthorizationHeaderFilter

@@ -2,7 +2,6 @@ package de.tekup.service;
 
 import de.tekup.dto.request.AuthRequest;
 import de.tekup.dto.response.AuthResponse;
-import de.tekup.entity.Role;
 import de.tekup.entity.User;
 import de.tekup.repository.UserRepository;
 import de.tekup.util.JwtUtil;
@@ -23,8 +22,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
 
 @Component
 @Service
