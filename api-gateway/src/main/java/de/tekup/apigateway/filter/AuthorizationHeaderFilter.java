@@ -1,10 +1,11 @@
 package de.tekup.apigateway.filter;
 
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.io.Decoders;
-import io.jsonwebtoken.security.Keys;
+import de.tekup.apigateway.util.JwtUtil;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.MalformedJwtException;
+import io.jsonwebtoken.security.SignatureException;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
 import org.springframework.http.HttpHeaders;
@@ -16,14 +17,12 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
-import java.security.Key;
-
 @Component
 @Slf4j
 public class AuthorizationHeaderFilter extends AbstractGatewayFilterFactory<AuthorizationHeaderFilter.Config> {
-    
-    @Value("${secret.key}")
-    private String secretKey;
+
+    @Autowired
+    private JwtUtil jwtUtil;
     
     public AuthorizationHeaderFilter() {
         super(Config.class);
@@ -32,7 +31,6 @@ public class AuthorizationHeaderFilter extends AbstractGatewayFilterFactory<Auth
     @Override
     public GatewayFilter apply(Config config) {
         return (exchange, chain) -> {
-            
             ServerHttpRequest request = exchange.getRequest();
             
             if (!request.getHeaders().containsKey(HttpHeaders.AUTHORIZATION)) {
@@ -47,7 +45,18 @@ public class AuthorizationHeaderFilter extends AbstractGatewayFilterFactory<Auth
             String jwt = authorizationHeader.replace("Bearer", "").trim();
             
             try {
-                validateJwt(jwt);
+                if (!jwtUtil.validateToken(jwt)) {
+                    return onError(exchange, "Jwt token not valid", HttpStatus.UNAUTHORIZED);
+                }
+            } catch (ExpiredJwtException e) {
+                log.error(e.getMessage());
+                return onError(exchange, "Jwt token expired", HttpStatus.UNAUTHORIZED);
+            } catch (MalformedJwtException e) {
+                log.error(e.getMessage());
+                return onError(exchange, "Bad jwt token format", HttpStatus.UNAUTHORIZED);
+            } catch (SignatureException e) {
+                log.error(e.getMessage());
+                return onError(exchange, "Bad jwt token signature", HttpStatus.UNAUTHORIZED);
             } catch (Exception e) {
                 log.error(e.getMessage());
                 return onError(exchange, "Jwt token not valid", HttpStatus.UNAUTHORIZED);
@@ -55,17 +64,6 @@ public class AuthorizationHeaderFilter extends AbstractGatewayFilterFactory<Auth
             
             return chain.filter(exchange);
         };
-    }
-    
-    
-    private void validateJwt(final String token) {
-        Jwts.parserBuilder().setSigningKey(getSignKey()).build().parseClaimsJws(token);
-    }
-    
-    
-    private Key getSignKey() {
-        byte[] keyBytes = Decoders.BASE64.decode(secretKey);
-        return Keys.hmacShaKeyFor(keyBytes);
     }
     
     private Mono<Void> onError(ServerWebExchange exchange, String err, HttpStatus httpStatus) {

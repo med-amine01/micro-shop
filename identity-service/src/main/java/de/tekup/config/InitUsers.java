@@ -3,6 +3,7 @@ package de.tekup.config;
 import de.tekup.entity.Authority;
 import de.tekup.entity.Role;
 import de.tekup.entity.User;
+import de.tekup.enums.Authorities;
 import de.tekup.enums.Roles;
 import de.tekup.repository.AuthorityRepository;
 import de.tekup.repository.RoleRepository;
@@ -37,9 +38,9 @@ public class InitUsers {
     @Transactional
     @EventListener
     public void onApplicationEvent(ApplicationReadyEvent event) {
-        Authority readAuthority = createAuthority("READ");
-        Authority writeAuthority = createAuthority("WRITE");
-        Authority deleteAuthority = createAuthority("DELETE");
+        Authority readAuthority = createAuthority(Authorities.READ.name());
+        Authority writeAuthority = createAuthority(Authorities.WRITE.name());
+        Authority deleteAuthority = createAuthority(Authorities.DELETE.name());
         
         createRole(Roles.ROLE_USER.name(), Arrays.asList(readAuthority, writeAuthority));
         Role roleAdmin = createRole(Roles.ROLE_ADMIN.name(), Arrays.asList(readAuthority, writeAuthority, deleteAuthority));

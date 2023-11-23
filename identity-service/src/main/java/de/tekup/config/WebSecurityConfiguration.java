@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
@@ -30,6 +31,9 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
     @Autowired
     private UserDetailsService jwtService;
     
+    @Autowired
+    private WebSecurityProperties webSecurityProperties;
+    
     @Bean
     @Override
     public AuthenticationManager authenticationManagerBean() throws Exception {
@@ -40,15 +44,15 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity httpSecurity) throws Exception {
         httpSecurity.cors();
         httpSecurity.csrf().disable()
-                .authorizeRequests().antMatchers("/api/v1/users", "/api/v1/auth/token").permitAll()
-                .antMatchers("/api/v1/roles").hasAnyAuthority("ROLE_ADMIN")
+                .authorizeRequests()
+                .antMatchers(webSecurityProperties.getAllowedPostRoutes()).permitAll()
+                .antMatchers(HttpMethod.GET, webSecurityProperties.getAllowedGetRoutes()).permitAll()
                 .antMatchers(HttpHeaders.ALLOW).permitAll()
                 .anyRequest().authenticated()
                 .and()
                 .exceptionHandling().authenticationEntryPoint(jwtAuthenticationEntryPoint)
                 .and()
-                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-        ;
+                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
         
         httpSecurity.addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
     }

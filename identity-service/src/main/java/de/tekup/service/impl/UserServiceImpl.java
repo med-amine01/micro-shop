@@ -5,6 +5,7 @@ import de.tekup.dto.request.UserRequest;
 import de.tekup.dto.response.UserResponse;
 import de.tekup.entity.Role;
 import de.tekup.entity.User;
+import de.tekup.enums.Roles;
 import de.tekup.exception.RoleServiceException;
 import de.tekup.exception.UserServiceException;
 import de.tekup.repository.RoleRepository;
@@ -16,8 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -28,9 +28,7 @@ import java.util.Set;
 public class UserServiceImpl implements UserService {
     
     private final UserRepository userRepository;
-    
     private final PasswordEncoder passwordEncoder;
-    
     private final RoleRepository roleRepository;
     
     @Override
@@ -49,10 +47,27 @@ public class UserServiceImpl implements UserService {
     }
     
     @Override
+    public UserResponse findUserByUsername(String username) {
+        try {
+            User user = userRepository.findByName(username)
+                    .orElseThrow(() -> new UserServiceException("User not found :: " + username));
+            
+            return Mapper.userToUserResponse(user);
+        } catch (Exception exception) {
+            log.error("UserService::findUserByUsername " + exception.getMessage());
+            throw new UserServiceException(exception.getMessage());
+        }
+    }
+    
+    @Override
     public UserResponse saveUser(UserRequest userRequest) {
         try {
             if (userRepository.existsByName(userRequest.getUsername())) {
                 throw new UserServiceException("User already exists");
+            }
+            
+            if (userRepository.existsByEmail(userRequest.getEmail())) {
+                throw new UserServiceException("User email already exists");
             }
             
             // Encrypt password
@@ -61,7 +76,7 @@ public class UserServiceImpl implements UserService {
             // Map user
             User user = Mapper.userRequestToUser(userRequest);
             
-            // Set user roles (it could be null)
+            // Set user roles (if not provided, assign USER_ROLE by default)
             user.setRoles(getRoles(userRequest));
             
             return Mapper.userToUserResponse(userRepository.save(user));
@@ -73,16 +88,25 @@ public class UserServiceImpl implements UserService {
     
     private Set<Role> getRoles(UserRequest userRequest) {
         Set<RoleRequest> userRequestRoles = userRequest.getRoles();
-        Set<Role> persistedRoles = new HashSet<>();
-        if (null != userRequestRoles) {
-            userRequestRoles.forEach(role -> {
-                Role r = roleRepository.findByRoleName(role.getRoleName());
-                if (null == r) {
-                    throw new RoleServiceException("Role not found: " + role.getRoleName());
-                }
-                persistedRoles.add(r);
-            });
+        
+        // Use default role USER_ROLE from roleRepository if no roles are provided
+        if (userRequestRoles == null || userRequestRoles.isEmpty()) {
+            Role defaultRole = roleRepository.findByRoleName(Roles.ROLE_USER.name());
+            if (defaultRole == null) {
+                throw new RoleServiceException("Default role ROLE_USER not found");
+            }
+            return Collections.singleton(defaultRole);
         }
+        
+        Set<Role> persistedRoles = new HashSet<>();
+        userRequestRoles.forEach(role -> {
+            Role r = roleRepository.findByRoleName(role.getRoleName());
+            if (r == null) {
+                throw new RoleServiceException("Role not found: " + role.getRoleName());
+            }
+            persistedRoles.add(r);
+        });
+        
         return persistedRoles;
     }
 }
