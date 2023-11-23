@@ -156,7 +156,8 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=stg
     depends_on:
-      - config-server
+      config-server:
+        condition: service_healthy
     volumes:
       - ./target/:/app/target
 
