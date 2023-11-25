@@ -6,12 +6,6 @@ spring:
     name: coupon-service
   profiles:
     active: dev
-  rabbitmq:
-    host: rabbitmq
-    template:
-      default-receive-queue: ${broker.coupon.queue}
-      exchange: ${broker.coupon.exchange}
-      routing-key: ${broker.coupon.routing-key}
 
 rabbitmq:
   queue: ${broker.coupon.queue}

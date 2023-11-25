@@ -6,40 +6,180 @@ spring:
     name: api-gateway
   profiles:
     active: dev
-## Api gateway config (routes)
+
   cloud:
     gateway:
+      ## Api gateway config (routes)
       routes:
-        ## Coupon-service
-        - id: coupon-service
+        # ==================================== COUPON SERVICE ====================================
+        ## Coupon-service::GET-all-coupons
+        - id: coupon-service-get-all-coupons
           uri: lb://coupon-service
           predicates:
-            - Path=/coupon-service/api/v1/coupons/**
+            - Path=/coupon-service/api/v1/coupons
+            - Method=GET
           filters:
             - RemoveRequestHeader=Cookie
             - RewritePath=/coupon-service/(?<segment>.*), /${segment}
-            - AuthorizationHeaderFilter
+            - AuthorizationHeaderFilter=ROLE_ADMIN READ
 
-        ## Product-service
-        - id: product-service
+        ## Coupon-service::GET-coupon
+        - id: coupon-service-get-coupon
+          uri: lb://coupon-service
+          predicates:
+            - Path=/coupon-service/api/v1/coupons/**
+            - Method=GET
+          filters:
+            - RemoveRequestHeader=Cookie
+            - RewritePath=/coupon-service/(?<segment>.*), /${segment}
+            - AuthorizationHeaderFilter=ROLE_ADMIN READ
+
+        ## Coupon-service::POST-coupon
+        - id: coupon-service-post-coupon
+          uri: lb://coupon-service
+          predicates:
+            - Path=/coupon-service/api/v1/coupons
+            - Method=POST
+          filters:
+            - RemoveRequestHeader=Cookie
+            - RewritePath=/coupon-service/(?<segment>.*), /${segment}
+            - AuthorizationHeaderFilter=ROLE_ADMIN READ WRITE
+
+        ## Coupon-service::PUT-coupon
+        - id: coupon-service-put-coupon
+          uri: lb://coupon-service
+          predicates:
+            - Path=/coupon-service/api/v1/coupons/**
+            - Method=PUT
+          filters:
+            - RemoveRequestHeader=Cookie
+            - RewritePath=/coupon-service/(?<segment>.*), /${segment}
+            - AuthorizationHeaderFilter=ROLE_ADMIN READ WRITE
+
+        ## Coupon-service::DELETE-coupon
+        - id: coupon-service-delete-coupon
+          uri: lb://coupon-service
+          predicates:
+            - Path=/coupon-service/api/v1/coupons/**
+            - Method=DELETE
+          filters:
+            - RemoveRequestHeader=Cookie
+            - RewritePath=/coupon-service/(?<segment>.*), /${segment}
+            - AuthorizationHeaderFilter=ROLE_ADMIN READ WRITE DELETE
+
+        # ==================================== PRODUCT SERVICE ====================================
+        ## Product-service::GET-all-products
+        - id: product-service-get-all-products
           uri: lb://product-service
           predicates:
-            - Path=/product-service/api/v1/products/**
+            - Path=/product-service/api/v1/products
+            - Method=GET
           filters:
             - RemoveRequestHeader=Cookie
             - RewritePath=/product-service/(?<segment>.*), /${segment}
-            - AuthorizationHeaderFilter
+            - AuthorizationHeaderFilter=ROLE_ADMIN READ ROLE_USER READ
 
-        ## Order-service
-        - id: order-service
+        ## Product-service::GET-product
+        - id: product-service-get-product
+          uri: lb://product-service
+          predicates:
+            - Path=/product-service/api/v1/products/**
+            - Method=GET
+          filters:
+            - RemoveRequestHeader=Cookie
+            - RewritePath=/product-service/(?<segment>.*), /${segment}
+            - AuthorizationHeaderFilter=ROLE_ADMIN READ ROLE_USER READ
+
+        ## Product-service::POST-product
+        - id: product-service-post-product
+          uri: lb://product-service
+          predicates:
+            - Path=/product-service/api/v1/products
+            - Method=POST
+          filters:
+            - RemoveRequestHeader=Cookie
+            - RewritePath=/product-service/(?<segment>.*), /${segment}
+            - AuthorizationHeaderFilter=ROLE_ADMIN READ WRITE
+
+        ## Product-service::PUT-product
+        - id: product-service-put-product
+          uri: lb://product-service
+          predicates:
+            - Path=/product-service/api/v1/products/**
+            - Method=PUT
+          filters:
+            - RemoveRequestHeader=Cookie
+            - RewritePath=/product-service/(?<segment>.*), /${segment}
+            - AuthorizationHeaderFilter=ROLE_ADMIN READ WRITE
+
+        ## Product-service::DELETE-product
+        - id: product-service-delete-product
+          uri: lb://product-service
+          predicates:
+            - Path=/product-service/api/v1/products/**
+            - Method=DELETE
+          filters:
+            - RemoveRequestHeader=Cookie
+            - RewritePath=/product-service/(?<segment>.*), /${segment}
+            - AuthorizationHeaderFilter=ROLE_ADMIN READ WRITE DELETE
+
+        # ==================================== ORDER SERVICE ====================================
+        ## Order-service::GET-all-orders
+        - id: order-service-get-all-orders
           uri: lb://order-service
           predicates:
-            - Path=/order-service/api/v1/orders/**
+            - Path=/order-service/api/v1/orders
+            - Method=GET
           filters:
             - RemoveRequestHeader=Cookie
             - RewritePath=/order-service/(?<segment>.*), /${segment}
-            - AuthorizationHeaderFilter
+            - AuthorizationHeaderFilter=ROLE_ADMIN READ
 
+        ## Order-service::GET-order
+        - id: order-service-get-order
+          uri: lb://order-service
+          predicates:
+            - Path=/order-service/api/v1/orders/**
+            - Method=GET
+          filters:
+            - RemoveRequestHeader=Cookie
+            - RewritePath=/order-service/(?<segment>.*), /${segment}
+            - AuthorizationHeaderFilter=ROLE_ADMIN READ ROLE_USER READ
+
+        ## Order-service::POST-order
+        - id: order-service-post-order
+          uri: lb://order-service
+          predicates:
+            - Path=/order-service/api/v1/orders
+            - Method=POST
+          filters:
+            - RemoveRequestHeader=Cookie
+            - RewritePath=/order-service/(?<segment>.*), /${segment}
+            - AuthorizationHeaderFilter=ROLE_ADMIN READ WRITE ROLE_USER READ WRITE
+
+        ## Order-service::PATCH-order
+        - id: order-service-patch-order
+          uri: lb://order-service
+          predicates:
+            - Path=/order-service/api/v1/orders/**
+            - Method=PATCH
+          filters:
+            - RemoveRequestHeader=Cookie
+            - RewritePath=/order-service/(?<segment>.*), /${segment}
+            - AuthorizationHeaderFilter=ROLE_ADMIN READ WRITE
+
+        ## Order-service::DELETE-order
+        - id: order-service-delete-order
+          uri: lb://order-service
+          predicates:
+            - Path=/order-service/api/v1/orders/**
+            - Method=PUT
+          filters:
+            - RemoveRequestHeader=Cookie
+            - RewritePath=/order-service/(?<segment>.*), /${segment}
+            - AuthorizationHeaderFilter=ROLE_ADMIN READ WRITE DELETE
+
+        # ==================================== INVENTORY SERVICE ====================================
         ## Inventory-service
         - id: inventory-service
           uri: lb://inventory-service
@@ -48,8 +188,9 @@ spring:
           filters:
             - RemoveRequestHeader=Cookie
             - RewritePath=/inventory-service/(?<segment>.*), /${segment}
-            - AuthorizationHeaderFilter
+            - AuthorizationHeaderFilter=ROLE_ADMIN READ WRITE DELETE
 
+        # ==================================== IDENTITY SERVICE  - AUTHENTICATION ====================================
         ## Identity-service::Authentication
         - id: identity-service-authentication
           uri: lb://identity-service
@@ -60,7 +201,8 @@ spring:
             - RemoveRequestHeader=Cookie
             - RewritePath=/identity-service/(?<segment>.*), /${segment}
 
-        ## Identity-service::Get-all-users
+        # ==================================== IDENTITY SERVICE  - USERS ====================================
+        ## Identity-service::GET-all-users
         - id: identity-service-get-all-users
           uri: lb://identity-service
           predicates:
@@ -69,7 +211,7 @@ spring:
           filters:
             - RemoveRequestHeader=Cookie
             - RewritePath=/identity-service/(?<segment>.*), /${segment}
-            - AuthorizationHeaderFilter
+            - AuthorizationHeaderFilter=ROLE_ADMIN READ
 
         ## Identity-service::POST-user
         - id: identity-service-post-user
@@ -90,8 +232,20 @@ spring:
           filters:
             - RemoveRequestHeader=Cookie
             - RewritePath=/identity-service/(?<segment>.*), /${segment}
-            - AuthorizationHeaderFilter
+            - AuthorizationHeaderFilter=ROLE_ADMIN READ
 
+        ## Identity-service::DELETE-user
+        - id: identity-service-delete-user
+          uri: lb://identity-service
+          predicates:
+            - Path=/identity-service/api/v1/users/**
+            - Method=DELETE
+          filters:
+            - RemoveRequestHeader=Cookie
+            - RewritePath=/identity-service/(?<segment>.*), /${segment}
+            - AuthorizationHeaderFilter=ROLE_ADMIN READ WRITE DELETE
+
+        # ==================================== IDENTITY SERVICE - ROLES ====================================
         ## Identity-service::GET-roles
         - id: identity-service-get-roles
           uri: lb://identity-service
@@ -101,7 +255,7 @@ spring:
           filters:
             - RemoveRequestHeader=Cookie
             - RewritePath=/identity-service/(?<segment>.*), /${segment}
-            - AuthorizationHeaderFilter
+            - AuthorizationHeaderFilter=ROLE_ADMIN READ
 
         ## Identity-service::POST-role
         - id: identity-service-create-roles
@@ -112,4 +266,4 @@ spring:
           filters:
             - RemoveRequestHeader=Cookie
             - RewritePath=/identity-service/(?<segment>.*), /${segment}
-            - AuthorizationHeaderFilter
+            - AuthorizationHeaderFilter=ROLE_ADMIN READ WRITE
