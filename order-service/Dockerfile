@@ -1,8 +1,3 @@
-#FROM openjdk:17-alpine
-#ARG JAR_FILE=target/*.jar
-#COPY ${JAR_FILE} order-service.jar
-#ENTRYPOINT ["java", "-jar", "order-service.jar"]
-
 FROM eclipse-temurin:17.0.4.1_1-jre AS builder
 WORKDIR extracted
 ADD target/*.jar app.jar

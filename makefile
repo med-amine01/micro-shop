@@ -2,6 +2,7 @@
 .PHONY: start
 start:
 	@echo "\033[32m🚀 Starting micro-shop docker services...\033[0m"
+	@mvn clean package -DskipTests
 	@docker-compose -f docker-compose.yml up -d
 	@echo "            _                          _                 "
 	@echo "           (_)                        | |                "
@@ -36,10 +37,5 @@ purge-containers:
 # Remove all Docker images except those with the reference "mysql"
 .PHONY: purge-images
 purge-images:
-	@docker images --format '{{.Repository}}:{{.Tag}}' | grep -v -e 'mysql' -e 'rabbitmq' -e 'discovery-service' -e 'api-gateway' | xargs -r docker rmi -f
-
-# Rebuild pom.xml files
-.PHONY: rebuild-all
-rebuild-all:
-	@mvn clean package -DskipTests
-
+	##@docker images --format '{{.Repository}}:{{.Tag}}' | grep -v -e 'mysql' -e 'rabbitmq' -e 'discovery-service' -e 'api-gateway' | xargs -r docker rmi -f
+	@docker images --format '{{.Repository}}:{{.Tag}}' | grep -v -e 'mysql' -e 'rabbitmq' | xargs -r docker rmi -f
