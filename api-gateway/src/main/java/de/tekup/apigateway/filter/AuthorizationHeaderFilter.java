@@ -17,6 +17,10 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.IntStream;
+
 @Component
 @Slf4j
 public class AuthorizationHeaderFilter extends AbstractGatewayFilterFactory<AuthorizationHeaderFilter.Config> {
@@ -27,6 +31,57 @@ public class AuthorizationHeaderFilter extends AbstractGatewayFilterFactory<Auth
     public AuthorizationHeaderFilter() {
         super(Config.class);
     }
+    
+    // This class will match the args from
+    public static class Config {
+        // Put configuration properties here
+        
+        // When we pass list of properties from application.yml filter separated by space eg: ROLE_ADMIN READ
+        // It's considered as a single string like this : "ROLE_ADMIN READ"
+        private List<String> authorities;
+        
+        public List<String> getAuthorities() {
+            return authorities;
+        }
+        
+        public void setAuthorities(String authorities) {
+            this.authorities = Arrays.asList(authorities.split(" "));
+        }
+// When we pass properties from application.yml filter separated by comma eg: ROLE_ADMIN,READ
+// It's considered as keys (which is match the config class attributes (role, authority))
+//        private String role;
+//        private String authority;
+//
+//        public String getRole() {
+//            return role;
+//        }
+//
+//        public void setRole(String role) {
+//            this.role = role;
+//        }
+//
+//        public String getAuthority() {
+//            return authority;
+//        }
+//
+//        public void setAuthority(String authority) {
+//            this.authority = authority;
+//        }
+    }
+    
+    @Override
+    public List<String> shortcutFieldOrder() {
+        // This will get list of args passed to filter (application.yml)
+        // It could be more than one arg, so we return a list of role (reference to static class Config)
+        return Arrays.asList("authorities");
+    }
+    
+//    @Override
+//    public List<String> shortcutFieldOrder() {
+//        // This will get list of args passed to filter (application.yml)
+//        // It could be more than one arg, so we return a list of role (reference to static class Config)
+//        return Arrays.asList("role","authority");
+//    }
     
     @Override
     public GatewayFilter apply(Config config) {
@@ -48,6 +103,11 @@ public class AuthorizationHeaderFilter extends AbstractGatewayFilterFactory<Auth
                 if (!jwtUtil.validateToken(jwt)) {
                     return onError(exchange, "Jwt token not valid", HttpStatus.UNAUTHORIZED);
                 }
+                
+                if (!hasRequiredAuthority(jwtUtil.getAuthorities(jwt), config.getAuthorities())) {
+                    return onError(exchange, "User is not allowed to perform this operation", HttpStatus.FORBIDDEN);
+                }
+                
             } catch (ExpiredJwtException e) {
                 log.error(e.getMessage());
                 return onError(exchange, "Jwt token expired", HttpStatus.UNAUTHORIZED);
@@ -59,12 +119,25 @@ public class AuthorizationHeaderFilter extends AbstractGatewayFilterFactory<Auth
                 return onError(exchange, "Bad jwt token signature", HttpStatus.UNAUTHORIZED);
             } catch (Exception e) {
                 log.error(e.getMessage());
-                return onError(exchange, "Jwt token not valid", HttpStatus.UNAUTHORIZED);
+                return onError(exchange, "Jwt token not valid : " + e.getMessage(), HttpStatus.UNAUTHORIZED);
             }
             
             return chain.filter(exchange);
         };
     }
+    
+    private boolean hasRequiredAuthority(List<String> tokenAuthorities, List<String> filterAuthorities) {
+        return IntStream.range(0, filterAuthorities.size() / 2)
+                .anyMatch(i -> {
+                    String role = filterAuthorities.get(i * 2);
+                    if (tokenAuthorities.contains(role)) {
+                        List<String> requiredAuthorities = Arrays.asList(filterAuthorities.get(i * 2 + 1).split(","));
+                        return requiredAuthorities.isEmpty() || tokenAuthorities.containsAll(requiredAuthorities);
+                    }
+                    return false;
+                });
+    }
+
     
     private Mono<Void> onError(ServerWebExchange exchange, String err, HttpStatus httpStatus) {
         ServerHttpResponse response = exchange.getResponse();
@@ -78,7 +151,4 @@ public class AuthorizationHeaderFilter extends AbstractGatewayFilterFactory<Auth
         return response.writeWith(Mono.just(response.bufferFactory().wrap(responseBody.getBytes())));
     }
     
-    public static class Config {
-        // Put configuration properties here
-    }
 }
