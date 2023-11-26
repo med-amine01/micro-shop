@@ -37,5 +37,5 @@ purge-containers:
 # Remove all Docker images except those with the reference "mysql"
 .PHONY: purge-images
 purge-images:
-	##@docker images --format '{{.Repository}}:{{.Tag}}' | grep -v -e 'mysql' -e 'rabbitmq' -e 'discovery-service' -e 'api-gateway' | xargs -r docker rmi -f
+#@docker images --format '{{.Repository}}:{{.Tag}}' | grep -v -e 'mysql' -e 'rabbitmq' -e 'discovery-service' -e 'api-gateway' | xargs -r docker rmi -f
 	@docker images --format '{{.Repository}}:{{.Tag}}' | grep -v -e 'mysql' -e 'rabbitmq' | xargs -r docker rmi -f

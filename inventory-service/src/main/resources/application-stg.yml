@@ -2,3 +2,9 @@ spring:
   # Config server
   config:
     import: configserver:${stg.config.server.url}
+  rabbitmq:
+    host: rabbitmq
+    template:
+      default-receive-queue: ${broker.product.queue}
+      exchange: ${broker.product.exchange}
+      routing-key: ${broker.product.routing-key}

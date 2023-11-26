@@ -12,6 +12,15 @@ spring:
       ## Api gateway config (routes)
       routes:
         # ==================================== COUPON SERVICE ====================================
+        ## Coupon-service::Health check
+        - id: coupon-service-health-check
+          uri: lb://coupon-service
+          predicates:
+            - Path=/coupon-service/actuator/health
+            - Method=GET
+          filters:
+            - RewritePath=/coupon-service/(?<segment>.*), /${segment}
+
         ## Coupon-service::GET-all-coupons
         - id: coupon-service-get-all-coupons
           uri: lb://coupon-service
@@ -68,6 +77,16 @@ spring:
             - AuthorizationHeaderFilter=ROLE_ADMIN READ WRITE DELETE
 
         # ==================================== PRODUCT SERVICE ====================================
+        ## Product-service::Health check
+        - id: product-service-health-check
+          uri: lb://product-service
+          predicates:
+            - Path=/product-service/actuator/health
+            - Method=GET
+          filters:
+            - RemoveRequestHeader=Cookie
+            - RewritePath=/product-service/(?<segment>.*), /${segment}
+
         ## Product-service::GET-all-products
         - id: product-service-get-all-products
           uri: lb://product-service
@@ -124,6 +143,16 @@ spring:
             - AuthorizationHeaderFilter=ROLE_ADMIN READ WRITE DELETE
 
         # ==================================== ORDER SERVICE ====================================
+        ## Order-service::Health check
+        - id: order-service-health-check
+          uri: lb://order-service
+          predicates:
+            - Path=/order-service/actuator/health
+            - Method=GET
+          filters:
+            - RemoveRequestHeader=Cookie
+            - RewritePath=/order-service/(?<segment>.*), /${segment}
+
         ## Order-service::GET-all-orders
         - id: order-service-get-all-orders
           uri: lb://order-service
@@ -180,6 +209,16 @@ spring:
             - AuthorizationHeaderFilter=ROLE_ADMIN READ WRITE DELETE
 
         # ==================================== INVENTORY SERVICE ====================================
+        ## Inventory-service::Health check
+        - id: inventory-service-health-check
+          uri: lb://inventory-service
+          predicates:
+            - Path=/inventory-service/actuator/health
+            - Method=GET
+          filters:
+            - RemoveRequestHeader=Cookie
+            - RewritePath=/inventory-service/(?<segment>.*), /${segment}
+
         ## Inventory-service
         - id: inventory-service
           uri: lb://inventory-service
@@ -202,6 +241,16 @@ spring:
             - RewritePath=/identity-service/(?<segment>.*), /${segment}
 
         # ==================================== IDENTITY SERVICE  - USERS ====================================
+        ## Identity-service::GET-health-check
+        - id: identity-service-health-check
+          uri: lb://identity-service
+          predicates:
+            - Path=/identity-service/actuator/health
+            - Method=GET
+          filters:
+            - RemoveRequestHeader=Cookie
+            - RewritePath=/identity-service/(?<segment>.*), /${segment}
+
         ## Identity-service::GET-all-users
         - id: identity-service-get-all-users
           uri: lb://identity-service
