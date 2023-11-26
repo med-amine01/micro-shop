@@ -4,7 +4,9 @@
    - `docker-compose -f docker-compose.yml up -d`
 3. **If you are on linux distribution RUN :**
    - `make start`
-   
+
+### You can import [MICRO-SHOP.postman_collection.json](MICRO-SHOP.postman_collection.json) file to postman to check all bellow routes.
+
 ### Identity Service
 1. **Create User**
    - Route: `POST http://localhost:8765/identity-service/api/v1/users`
