@@ -19,6 +19,9 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 @Component
 @Slf4j
@@ -30,12 +33,21 @@ public class JwtRequestFilter extends OncePerRequestFilter {
     @Autowired
     private JwtService jwtService;
     
+    @Autowired
+    private WebSecurityProperties webSecurityProperties;
+    
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         
         String requestURI = request.getRequestURI();
+        List<String> allowedRoutes = new ArrayList<>();
+        allowedRoutes.addAll(Arrays.asList(webSecurityProperties.getAllowedGetRoutes()));
+        allowedRoutes.addAll(Arrays.asList(webSecurityProperties.getAllowedPostRoutes()));
         
-        if (requestURI.contains("/api/v1/auth/token") || requestURI.contains("/api/v1/users")) {
+        boolean hasAllowedRoutes = allowedRoutes.stream()
+                .anyMatch(allowedRoute -> requestURI.contains(allowedRoute.replace("/**", "")));
+        
+        if (hasAllowedRoutes) {
             filterChain.doFilter(request, response);
             return;
         }

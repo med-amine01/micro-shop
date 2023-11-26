@@ -6,12 +6,6 @@ spring:
     name: order-service
   profiles:
     active: dev
-  rabbitmq:
-    host: rabbitmq
-    template:
-      default-receive-queue: ${broker.order.queue}
-      exchange: ${broker.order.exchange}
-      routing-key: ${broker.order.routing-key}
 
 rabbitmq:
   queue: ${broker.order.queue}
