@@ -1,12 +1,5 @@
-FROM eclipse-temurin:17.0.4.1_1-jre AS builder
-WORKDIR extracted
-ADD target/*.jar app.jar
-RUN java -Djarmode=layertools -jar app.jar extract
-
-FROM eclipse-temurin:17.0.4.1_1-jre
+FROM openjdk:17-alpine
 WORKDIR application
-COPY --from=builder extracted/dependencies/ ./
-COPY --from=builder extracted/spring-boot-loader/ ./
-COPY --from=builder extracted/snapshot-dependencies/ ./
-COPY --from=builder extracted/application/ ./
-ENTRYPOINT ["java", "org.springframework.boot.loader.JarLauncher"]
+ENV TZ="Africa/Tunis"
+ADD target/*.jar app.jar
+ENTRYPOINT ["java","-jar","/application/app.jar"]

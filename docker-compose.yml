@@ -9,7 +9,7 @@ services:
       - MYSQL_ROOT_PASSWORD=Mad123**
       - MYSQL_ROOT_HOST=%
     networks:
-      - my-network
+      - micro-network
     ports:
       - "6666:3306"
     healthcheck:
@@ -24,7 +24,7 @@ services:
       context: ./discovery-service
       dockerfile: Dockerfile
     networks:
-      - my-network
+      - micro-network
     ports:
       - "8761:8761"
     healthcheck:
@@ -39,7 +39,7 @@ services:
       context: ./config-server
       dockerfile: Dockerfile
     networks:
-      - my-network
+      - micro-network
     ports:
       - "8888:8888"
     environment:
@@ -53,6 +53,30 @@ services:
       timeout: 10s
       retries: 3
 
+  redis:
+    container_name: redis
+    image: redis
+    hostname: redis
+    ports:
+      - "6379:6379"
+    networks:
+      - micro-network
+
+  rabbitmq:
+    container_name: rabbitmq
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    hostname: rabbitmq
+    networks:
+      - micro-network
+    healthcheck:
+      test: [ "CMD", "rabbitmqctl", "status" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
   api-gateway:
     container_name: api-gateway
     build:
@@ -60,7 +84,7 @@ services:
       dockerfile: Dockerfile
     restart: on-failure
     networks:
-      - my-network
+      - micro-network
     ports:
       - "8765:8765"
     environment:
@@ -71,28 +95,13 @@ services:
       discovery-service:
         condition: service_healthy
 
-  rabbitmq:
-    container_name: rabbitmq
-    image: rabbitmq:3-management
-    ports:
-      - "5672:5672"
-      - "15672:15672"
-    hostname: rabbitmq
-    networks:
-      - my-network
-    healthcheck:
-      test: [ "CMD", "rabbitmqctl", "status" ]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-
   identity-service:
     container_name: identity-service
     build:
       context: ./identity-service
       dockerfile: Dockerfile
     networks:
-      - my-network
+      - micro-network
     environment:
       - SPRING_PROFILES_ACTIVE=stg
     depends_on:
@@ -102,6 +111,11 @@ services:
         condition: service_started
     volumes:
       - ./target/:/app/target
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://api-gateway:8765/identity-service/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   coupon-service:
     container_name: coupon-service
@@ -109,14 +123,20 @@ services:
       context: ./coupon-service
       dockerfile: Dockerfile
     networks:
-      - my-network
+      - micro-network
     environment:
       - SPRING_PROFILES_ACTIVE=stg
     depends_on:
       - identity-service
       - rabbitmq
-    volumes:
-      - ./target/:/app/target
+      - redis
+    links:
+      - redis
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://api-gateway:8765/coupon-service/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 4
 
   product-service:
     container_name: product-service
@@ -124,13 +144,18 @@ services:
       context: ./product-service
       dockerfile: Dockerfile
     networks:
-      - my-network
+      - micro-network
     environment:
       - SPRING_PROFILES_ACTIVE=stg
     depends_on:
       - coupon-service
     volumes:
       - ./target/:/app/target
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://api-gateway:8765/product-service/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   inventory-service:
     container_name: inventory-service
@@ -138,13 +163,18 @@ services:
       context: ./inventory-service
       dockerfile: Dockerfile
     networks:
-      - my-network
+      - micro-network
     environment:
       - SPRING_PROFILES_ACTIVE=stg
     depends_on:
       - product-service
     volumes:
       - ./target/:/app/target
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://api-gateway:8765/inventory-service/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   order-service:
     container_name: order-service
@@ -152,7 +182,7 @@ services:
       context: ./order-service
       dockerfile: Dockerfile
     networks:
-      - my-network
+      - micro-network
     environment:
       - SPRING_PROFILES_ACTIVE=stg
     depends_on:
@@ -160,7 +190,12 @@ services:
         condition: service_healthy
     volumes:
       - ./target/:/app/target
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://api-gateway:8765/order-service/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
 networks:
-  my-network:
+  micro-network:
     driver: bridge

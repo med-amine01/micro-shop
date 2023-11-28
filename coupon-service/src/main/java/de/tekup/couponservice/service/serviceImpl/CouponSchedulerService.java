@@ -4,6 +4,7 @@ import de.tekup.couponservice.exception.CouponServiceBusinessException;
 import de.tekup.couponservice.service.CouponServiceInterface;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Service;
 
@@ -11,10 +12,8 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
 
 @Service
@@ -22,67 +21,68 @@ import java.util.concurrent.ScheduledFuture;
 @Slf4j
 public class CouponSchedulerService {
     
-    private Map<String, LocalDateTime> expCouponMap = new HashMap<>();
-    private Map<String, ScheduledFuture<?>> scheduledTasks = new HashMap<>(); // Store ScheduledFuture objects
-    
     private final TaskScheduler taskScheduler;
     private final CouponServiceInterface couponServiceInterface;
+    private final RedisTemplate<String, String> redisTemplate;
+    
+    private final Map<String, ScheduledFuture<?>> scheduledTasks = new ConcurrentHashMap<>();
     
     public void prepare2ExecuteTasks() {
-        Map<String, LocalDateTime> sortedExpCouponMap = sortMapByLocalDateTimeAsc(expCouponMap);
-        
-        for (Map.Entry<String, LocalDateTime> entry : sortedExpCouponMap.entrySet()) {
+        redisTemplate.keys("*").forEach(code -> {
+            String value = redisTemplate.opsForValue().get(code);
+            LocalDateTime expirationDateTime = getExpirationDateTime(value);
             ScheduledFuture<?> scheduledFuture = taskScheduler.schedule(() -> {
-                couponServiceInterface.disableCoupon(entry.getKey());
-                log.info("Executing task for coupon code: " + entry.getKey());
-            }, convertToInstant(entry.getValue()));
+                log.info("Executing task for coupon code: <{} , {}>", code, value);
+                
+                couponServiceInterface.disableCoupon(code);
+                scheduledTasks.remove(code);
+                redisTemplate.delete(code);
+                
+                log.info("Task Executed");
+            }, convertToInstant(expirationDateTime));
             
-            // Store the ScheduledFuture in a map
-            scheduledTasks.put(entry.getKey(), scheduledFuture);
+            // Store the ScheduledFuture in the map
+            scheduledTasks.put(code, scheduledFuture);
             
-            // Remove the code after schedule runs
-            expCouponMap.remove(entry.getKey());
-        }
+            log.info("Task scheduled for coupon code: " + code);
+        });
+        
+        log.info("Number of tasks scheduled: " + scheduledTasks.size());
     }
+
     
     public void cancelScheduledTask(String code) {
         ScheduledFuture<?> scheduledFuture = scheduledTasks.get(code);
         if (scheduledFuture != null) {
+            // Cancel the scheduled task
             scheduledFuture.cancel(true);
+            
+            // Remove from the map and Redis cache
             scheduledTasks.remove(code);
-            expCouponMap.remove(code);
+            redisTemplate.delete(code);
+            
             log.info("Canceled task for coupon code: " + code);
         } else {
             log.warn("Task not found for coupon code: " + code);
         }
     }
     
-    public void add2ExpirationDateMap(String code, String dateTime) {
+    public void saveTaskToRedis(String code, String dateTime) {
         try {
-            LocalDateTime expirationDateTime = LocalDateTime.parse(
-                    dateTime.trim(),
-                    DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss")
-            );
-            expCouponMap.put(code, expirationDateTime);
-            log.info("Adding to MAP = {}", expCouponMap);
+            // Store in Redis with key expiration
+            redisTemplate.opsForValue().set(code, dateTime);
+
+            log.info("Adding to Redis cache: code={}, expirationDateTime={}", code, dateTime);
         } catch (Exception e) {
             throw new CouponServiceBusinessException(e.getMessage());
         }
     }
     
-    private static Map<String, LocalDateTime> sortMapByLocalDateTimeAsc(Map<String, LocalDateTime> unsortedMap) {
-        List<Map.Entry<String, LocalDateTime>> sortedEntries = unsortedMap
-                .entrySet()
-                .stream()
-                .sorted(Map.Entry.comparingByValue())
-                .toList();
-        
-        Map<String, LocalDateTime> sortedMap = new LinkedHashMap<>();
-        for (Map.Entry<String, LocalDateTime> entry : sortedEntries) {
-            sortedMap.put(entry.getKey(), entry.getValue());
-        }
-        
-        return sortedMap;
+    private static LocalDateTime getExpirationDateTime(String dateTime) {
+        return LocalDateTime.parse(
+                dateTime.trim(),
+                DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss")
+        );
     }
     
     private static Instant convertToInstant(LocalDateTime dateTime) {

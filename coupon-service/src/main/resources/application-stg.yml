@@ -2,6 +2,11 @@ spring:
   # Config server
   config:
     import: configserver:${stg.config.server.url}
+
+  redis:
+    host: ${stg.redis.host}
+    port: ${stg.redis.port}
+
   rabbitmq:
     host: rabbitmq
     template:
