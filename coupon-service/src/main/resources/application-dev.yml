@@ -2,3 +2,7 @@ spring:
   # Config server
   config:
     import: configserver:${dev.config.server.url}
+
+  redis:
+    host: ${dev.redis.host}
+    port: ${dev.redis.port}

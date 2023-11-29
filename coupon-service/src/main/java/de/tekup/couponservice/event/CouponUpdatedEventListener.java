@@ -18,7 +18,7 @@ public class CouponUpdatedEventListener implements ApplicationListener<CouponUpd
     public void onApplicationEvent(CouponUpdatedEvent event) {
         Coupon coupon = event.getCoupon();
         couponSchedulerService.cancelScheduledTask(coupon.getCode());
-        couponSchedulerService.add2ExpirationDateMap(coupon.getCode(), event.getNewExpDate());
+        couponSchedulerService.saveTaskToRedis(coupon.getCode(), event.getNewExpDate());
         couponSchedulerService.prepare2ExecuteTasks();
     }
 }

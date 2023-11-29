@@ -17,7 +17,7 @@ public class CouponCreatedEventListener implements ApplicationListener<CouponCre
     @Override
     public void onApplicationEvent(CouponCreatedEvent event) {
         CouponResponse coupon = event.getCouponResponse();
-        couponSchedulerService.add2ExpirationDateMap(coupon.getCode(), coupon.getExpirationDate());
+        couponSchedulerService.saveTaskToRedis(coupon.getCode(), coupon.getExpirationDate());
         couponSchedulerService.prepare2ExecuteTasks();
     }
 }
