@@ -5,9 +5,13 @@ services:
     container_name: mysql-db
     image: mysql:latest
     restart: always
+    env_file:
+      - .env
     environment:
-      - MYSQL_ROOT_PASSWORD=Mad123**
+      - MYSQL_ROOT_PASSWORD=$MYSQLDB_ROOT_PASSWORD
       - MYSQL_ROOT_HOST=%
+    volumes:
+      - db:/var/lib/mysql
     networks:
       - micro-network
     ports:
@@ -109,8 +113,6 @@ services:
         condition: service_healthy
       api-gateway:
         condition: service_started
-    volumes:
-      - ./target/:/app/target
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://api-gateway:8765/identity-service/actuator/health" ]
       interval: 30s
@@ -136,7 +138,7 @@ services:
       test: [ "CMD", "curl", "-f", "http://api-gateway:8765/coupon-service/actuator/health" ]
       interval: 30s
       timeout: 10s
-      retries: 4
+      retries: 3
 
   product-service:
     container_name: product-service
@@ -149,8 +151,6 @@ services:
       - SPRING_PROFILES_ACTIVE=stg
     depends_on:
       - coupon-service
-    volumes:
-      - ./target/:/app/target
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://api-gateway:8765/product-service/actuator/health" ]
       interval: 30s
@@ -168,8 +168,6 @@ services:
       - SPRING_PROFILES_ACTIVE=stg
     depends_on:
       - product-service
-    volumes:
-      - ./target/:/app/target
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://api-gateway:8765/inventory-service/actuator/health" ]
       interval: 30s
@@ -188,13 +186,15 @@ services:
     depends_on:
       config-server:
         condition: service_healthy
-    volumes:
-      - ./target/:/app/target
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://api-gateway:8765/order-service/actuator/health" ]
       interval: 30s
       timeout: 10s
       retries: 3
+
+volumes:
+  db:
+    driver: local
 
 networks:
   micro-network:
