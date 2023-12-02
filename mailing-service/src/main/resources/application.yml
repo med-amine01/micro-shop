@@ -8,17 +8,20 @@ spring:
     active: dev
 
   ## Mailing config
-#  mail:
-#    host: ${mailing.host}
-#    username: ${mailing.username}
-#    password: ${mailing.password}
-#    port: ${mailing.port}
-#    properties:
-#      mail:
-#        smtp:
-#          starttls:
-#            enable: true
-#          auth: true
+  mail:
+    host: ${mailing.host}
+    port: ${mailing.port}
+    username: ${mailing.username}
+    password: ${mailing.password}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+  thymeleaf:
+    prefix: classpath:/templates/
+    suffix: .html
 
 ## RabbitMq config
 rabbitmq:
