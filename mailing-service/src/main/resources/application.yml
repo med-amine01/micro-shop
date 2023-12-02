@@ -1,0 +1,27 @@
+server:
+  port: 0
+
+spring:
+  application:
+    name: mailing-service
+  profiles:
+    active: dev
+
+  ## Mailing config
+#  mail:
+#    host: ${mailing.host}
+#    username: ${mailing.username}
+#    password: ${mailing.password}
+#    port: ${mailing.port}
+#    properties:
+#      mail:
+#        smtp:
+#          starttls:
+#            enable: true
+#          auth: true
+
+## RabbitMq config
+rabbitmq:
+  queue: ${broker.mailing.queue}
+  exchange: ${broker.mailing.exchange}
+  routing-key: ${broker.mailing.routing-key}

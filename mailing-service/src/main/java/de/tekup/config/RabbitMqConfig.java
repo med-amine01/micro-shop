@@ -1,4 +1,4 @@
-package de.tekup.productservice.config;
+package de.tekup.config;
 
 import lombok.Data;
 import org.springframework.amqp.core.*;
@@ -17,19 +17,12 @@ public class RabbitMqConfig {
     public static String QUEUE;
     public static String EXCHANGE;
     public static String ROUTING_KEY;
-    
     @Value("${rabbitmq.queue}")
     private String queue;
     @Value("${rabbitmq.exchange}")
     private String exchange;
     @Value("${rabbitmq.routing-key}")
     private String routingKey;
-    
-    private AmqpAdmin amqpAdmin;
-    
-    public RabbitMqConfig(AmqpAdmin amqpAdmin) {
-        this.amqpAdmin = amqpAdmin;
-    }
     
     @Value("${rabbitmq.queue}")
     public void setQueue(String queue) {
@@ -44,11 +37,6 @@ public class RabbitMqConfig {
     @Value("${rabbitmq.routing-key}")
     public void setRoutingKey(String routingKey) {
         RabbitMqConfig.ROUTING_KEY = routingKey;
-    }
-    
-    @Bean
-    public void initializeQueue() {
-        amqpAdmin.declareQueue(queue());
     }
     
     @Bean

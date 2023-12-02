@@ -4,11 +4,12 @@ server:
 spring:
   application:
     name: config-server
-#  profiles:
-#     stg
+
   cloud:
     config:
       server:
         git:
           uri: https://github.com/med-amine01/spring-config-server
           clone-on-start: true
+          username: med-amine01
+          password: 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

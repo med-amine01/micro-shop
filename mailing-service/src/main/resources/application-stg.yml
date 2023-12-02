@@ -1,0 +1,10 @@
+spring:
+  # Config server
+  config:
+    import: configserver:${stg.config.server.url}
+  rabbitmq:
+    host: rabbitmq
+    template:
+      default-receive-queue: ${broker.mailing.queue}
+      exchange: ${broker.mailing.exchange}
+      routing-key: ${broker.mailing.routing-key}
