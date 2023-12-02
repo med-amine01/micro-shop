@@ -49,9 +49,8 @@ public class Mapper {
         });
         order.setOrderLineItemsList(orderLineItemsList);
         
-        // TODO : don't forget to update these fields
-        order.setCreateBy("order-service");
-        order.setUpdatedBy("order-service");
+        order.setCreateBy(orderResponse.getCreatedBy());
+        order.setUpdatedBy(orderResponse.getUpdatedBy());
         
         //Setting total price
         order.setTotalPrice(orderResponse.getTotalPrice());
@@ -91,6 +90,9 @@ public class Mapper {
         });
         orderResponse.setItems(orderLineItemsResponseList);
         orderResponse.setTotalPrice(order.getTotalPrice());
+        
+        orderResponse.setCreatedBy(order.getCreateBy());
+        orderResponse.setUpdatedBy(order.getUpdatedBy());
         
         return orderResponse;
     }

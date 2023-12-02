@@ -12,6 +12,7 @@ import de.tekup.orderservice.exception.InvalidRequestException;
 import de.tekup.orderservice.exception.OrderNotFoundException;
 import de.tekup.orderservice.exception.OrderServiceException;
 import de.tekup.orderservice.repository.OrderRepository;
+import de.tekup.orderservice.util.JwtUtil;
 import de.tekup.orderservice.util.Mapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -48,6 +49,8 @@ public class OrderService {
     
     private final RabbitTemplate rabbitTemplate;
     
+    private final JwtUtil jwtUtil;
+    
     public List<OrderResponse> getOrdersByStatus(String status) {
         List<Order> orders;
         
@@ -60,7 +63,7 @@ public class OrderService {
         return orders.stream().map(Mapper::toDto).toList();
     }
     
-    public OrderResponse placeOrder(OrderRequest orderRequest, String couponCode) {
+    public OrderResponse placeOrder(OrderRequest orderRequest, String couponCode, String authorization) {
         CouponResponse couponResponse = null;
         // Check coupon code existence and validity
         if (null != couponCode) {
@@ -96,25 +99,24 @@ public class OrderService {
         // Setting up order response
         OrderResponse orderResponse = new OrderResponse();
         orderResponse.setOrderNumber(UUID.randomUUID().toString());
-        orderResponse.setOrderStatus(String.valueOf(OrderStatus.PENDING));
+        orderResponse.setOrderStatus(OrderStatus.PENDING.name());
         orderResponse.setItems(orderItems);
         orderResponse.setTotalPrice(totalPrice);
+        
+        // Getting createBy from jwt token
+        String createdBy = jwtUtil.getUsernameFromToken(authorization);
+        orderResponse.setCreatedBy(createdBy);
         
         // Map it to entity and save it in database
         orderRepository.save(Mapper.toEntity(orderResponse));
         
-        try {
-            // Sending to rabbitMq
-            rabbitTemplate.convertAndSend(RabbitMqConfig.EXCHANGE, RabbitMqConfig.ROUTING_KEY, orderResponse);
-            log.info("Order placed and sent to the mailing queue");
-        } catch (Exception e) {
-            log.error("Couldn't send order to queue " + e.getMessage());
-        }
+        // Sending order response to mailing queue
+        sendingToQueue(orderResponse);
         
         return orderResponse;
     }
     
-    public OrderResponse updateOrderStatus(OrderStatusRequest orderStatusRequest, String uuid) {
+    public OrderResponse updateOrderStatus(OrderStatusRequest orderStatusRequest, String uuid, String authorization) {
         // Get order by uuid
         Order order = orderRepository
                 .findByOrderNumber(uuid)
@@ -123,7 +125,7 @@ public class OrderService {
         String fetchedStatus = order.getOrderStatus().toString();
         
         // You can't change update a canceled order
-        if (fetchedStatus.equalsIgnoreCase(String.valueOf(OrderStatus.CANCELED))) {
+        if (fetchedStatus.equalsIgnoreCase(OrderStatus.CANCELED.name())) {
             throw new OrderServiceException("the order already canceled");
         }
         
@@ -134,7 +136,7 @@ public class OrderService {
         
         // Patch order status
         String requestedStatus = orderStatusRequest.getOrderStatus();
-        if (requestedStatus.equalsIgnoreCase(String.valueOf(OrderStatus.PLACED))) {
+        if (requestedStatus.equalsIgnoreCase(OrderStatus.PLACED.name())) {
             order.setOrderStatus(OrderStatus.PLACED);
         } else {
             order.setOrderStatus(OrderStatus.CANCELED);
@@ -144,7 +146,17 @@ public class OrderService {
             });
         }
         
-        return Mapper.toDto(orderRepository.save(order));
+        // Getting updated from jwt token
+        String updatedBy = jwtUtil.getUsernameFromToken(authorization);
+        order.setUpdatedBy(updatedBy);
+        
+        // Saving it and map it to queue
+        OrderResponse orderResponse = Mapper.toDto(orderRepository.save(order));
+        
+        // Sending order response to mailing queue
+        sendingToQueue(orderResponse);
+        
+        return orderResponse;
     }
     
     private CouponResponse getCoupon(String couponCode) {
@@ -312,6 +324,16 @@ public class OrderService {
             
         } catch (Exception exception) {
             throw new OrderServiceException("Error updating stock " + exception.getMessage());
+        }
+    }
+    
+    private void sendingToQueue(OrderResponse orderResponse) {
+        try {
+            // Sending to rabbitMq
+            rabbitTemplate.convertAndSend(RabbitMqConfig.EXCHANGE, RabbitMqConfig.ROUTING_KEY, orderResponse);
+            log.info("Order placed and sent to the mailing queue");
+        } catch (Exception e) {
+            log.error("Couldn't send order to queue " + e.getMessage());
         }
     }
 }

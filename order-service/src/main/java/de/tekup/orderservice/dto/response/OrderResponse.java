@@ -15,4 +15,6 @@ public class OrderResponse {
     private String orderStatus;
     private List<OrderLineItemsResponse> items;
     private BigDecimal totalPrice;
+    private String createdBy;
+    private String updatedBy;
 }
