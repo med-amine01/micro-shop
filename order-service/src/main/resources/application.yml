@@ -7,7 +7,6 @@ spring:
   profiles:
     active: dev
 
-
 rabbitmq:
   # Mailing config
   mailing:

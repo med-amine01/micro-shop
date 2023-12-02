@@ -44,15 +44,16 @@ public class OrderController {
     }
     
     @PostMapping
-    public ResponseEntity<ApiResponse<OrderResponse>> createProduct
+    public ResponseEntity<ApiResponse<OrderResponse>> createOrder
             (
                     @RequestBody @Valid OrderRequest orderRequest,
-                    @RequestParam(required = false) String coupon
+                    @RequestParam(required = false) String coupon,
+                    @RequestHeader("Authorization") String authorization
             ) {
         ApiResponse<OrderResponse> responseDTO = ApiResponse
                 .<OrderResponse>builder()
                 .status(SUCCESS)
-                .results(orderService.placeOrder(orderRequest, coupon))
+                .results(orderService.placeOrder(orderRequest, coupon, authorization))
                 .build();
         
         return ResponseEntity.status(HttpStatus.CREATED).body(responseDTO);
@@ -62,13 +63,14 @@ public class OrderController {
     public ResponseEntity<ApiResponse<OrderResponse>> patchOrderStatus
             (
                     @RequestBody @Valid OrderStatusRequest requestStatus,
-                    @PathVariable String uuid
+                    @PathVariable String uuid,
+                    @RequestHeader("Authorization") String authorization
             ) {
         
         ApiResponse<OrderResponse> responseDTO = ApiResponse
                 .<OrderResponse>builder()
                 .status(SUCCESS)
-                .results(orderService.updateOrderStatus(requestStatus, uuid))
+                .results(orderService.updateOrderStatus(requestStatus, uuid, authorization))
                 .build();
         
         return ResponseEntity.status(HttpStatus.OK).body(responseDTO);
