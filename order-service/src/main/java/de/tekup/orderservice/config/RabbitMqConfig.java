@@ -14,29 +14,44 @@ import org.springframework.context.annotation.Configuration;
 @Data
 public class RabbitMqConfig {
     
+    @Value("${rabbitmq.mailing.queue}")
+    private String queue;
+    
+    @Value("${rabbitmq.mailing.exchange}")
+    private String exchange;
+    
+    @Value("${rabbitmq.mailing.routing-key}")
+    private String routingKey;
+    
     public static String QUEUE;
     public static String EXCHANGE;
     public static String ROUTING_KEY;
-    @Value("${rabbitmq.queue}")
-    private String queue;
-    @Value("${rabbitmq.exchange}")
-    private String exchange;
-    @Value("${rabbitmq.routing-key}")
-    private String routingKey;
     
-    @Value("${rabbitmq.queue}")
+    private AmqpAdmin amqpAdmin;
+    
+    public RabbitMqConfig(AmqpAdmin amqpAdmin) {
+        this.amqpAdmin = amqpAdmin;
+    }
+    
+    @Value("${rabbitmq.mailing.queue}")
     public void setQueue(String queue) {
         RabbitMqConfig.QUEUE = queue;
     }
     
-    @Value("${rabbitmq.exchange}")
+    @Value("${rabbitmq.mailing.exchange}")
     public void setExchange(String exchange) {
         RabbitMqConfig.EXCHANGE = exchange;
     }
     
-    @Value("${rabbitmq.routing-key}")
+    @Value("${rabbitmq.mailing.routing-key}")
     public void setRoutingKey(String routingKey) {
         RabbitMqConfig.ROUTING_KEY = routingKey;
+    }
+    
+    @Bean
+    // amqpAdmin.declareQueue(new Queue(getQueue(), true));
+    public void initializeQueue() {
+        amqpAdmin.declareQueue(queue());
     }
     
     @Bean
@@ -51,10 +66,7 @@ public class RabbitMqConfig {
     
     @Bean
     public Binding binding(Queue queue, TopicExchange exchange) {
-        return BindingBuilder
-                .bind(queue)
-                .to(exchange)
-                .with(routingKey);
+        return BindingBuilder.bind(queue).to(exchange).with(routingKey);
     }
     
     @Bean
@@ -70,4 +82,3 @@ public class RabbitMqConfig {
         return template;
     }
 }
-

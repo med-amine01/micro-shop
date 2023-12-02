@@ -1,5 +1,6 @@
 package de.tekup.orderservice.service;
 
+import de.tekup.orderservice.config.RabbitMqConfig;
 import de.tekup.orderservice.dto.request.InventoryRequest;
 import de.tekup.orderservice.dto.request.OrderLineItemsRequest;
 import de.tekup.orderservice.dto.request.OrderRequest;
@@ -14,6 +15,7 @@ import de.tekup.orderservice.repository.OrderRepository;
 import de.tekup.orderservice.util.Mapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.ResponseEntity;
@@ -31,10 +33,6 @@ import java.util.stream.Collectors;
 @Slf4j
 public class OrderService {
     
-    private final OrderRepository orderRepository;
-    
-    private final WebClient.Builder webClientBuilder;
-    
     @Value("${microservices.inventory-service.uri}")
     private String INVENTORY_SERVICE_URL;
     
@@ -43,6 +41,12 @@ public class OrderService {
     
     @Value("${microservices.coupon-service.uri}")
     private String COUPON_SERVICE_URL;
+    
+    private final OrderRepository orderRepository;
+    
+    private final WebClient.Builder webClientBuilder;
+    
+    private final RabbitTemplate rabbitTemplate;
     
     public List<OrderResponse> getOrdersByStatus(String status) {
         List<Order> orders;
@@ -98,6 +102,14 @@ public class OrderService {
         
         // Map it to entity and save it in database
         orderRepository.save(Mapper.toEntity(orderResponse));
+        
+        try {
+            // Sending to rabbitMq
+            rabbitTemplate.convertAndSend(RabbitMqConfig.EXCHANGE, RabbitMqConfig.ROUTING_KEY, orderResponse);
+            log.info("Order placed and sent to the mailing queue");
+        } catch (Exception e) {
+            log.error("Couldn't send order to queue " + e.getMessage());
+        }
         
         return orderResponse;
     }

@@ -1,0 +1,4 @@
+spring:
+  # Config server
+  config:
+    import: configserver:${dev.config.server.url}
