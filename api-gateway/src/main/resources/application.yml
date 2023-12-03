@@ -316,3 +316,13 @@ spring:
             - RemoveRequestHeader=Cookie
             - RewritePath=/identity-service/(?<segment>.*), /${segment}
             - AuthorizationHeaderFilter=ROLE_ADMIN READ WRITE
+
+        # ==================================== MAILING SERVICE ====================================
+        ## Mailing-service::Health check
+        - id: mailing-service-health-check
+          uri: lb://mailing-service
+          predicates:
+            - Path=/mailing-service/actuator/health
+            - Method=GET
+          filters:
+            - RewritePath=/mailing-service/(?<segment>.*), /${segment}
