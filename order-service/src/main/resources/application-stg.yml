@@ -5,6 +5,6 @@ spring:
   rabbitmq:
     host: rabbitmq
     template:
-      default-receive-queue: ${broker.order.queue}
-      exchange: ${broker.order.exchange}
-      routing-key: ${broker.order.routing-key}
+      default-receive-queue: ${broker.mailing.queue}
+      exchange: ${broker.mailing.exchange}
+      routing-key: ${broker.mailing.routing-key}

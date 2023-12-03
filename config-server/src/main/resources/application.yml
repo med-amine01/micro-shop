@@ -9,7 +9,7 @@ spring:
     config:
       server:
         git:
-          uri: https://github.com/med-amine01/spring-config-server
+          uri: ${GIT_URL}
           clone-on-start: true
           username: med-amine01
-          password: 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
+          password: ${GIT_TOKEN}

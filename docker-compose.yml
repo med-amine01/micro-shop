@@ -65,6 +65,11 @@ services:
       - "6379:6379"
     networks:
       - micro-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
 
   rabbitmq:
     container_name: rabbitmq
@@ -188,6 +193,24 @@ services:
         condition: service_healthy
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://api-gateway:8765/order-service/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  mailing-service:
+    container_name: mailing-service
+    build:
+      context: ./mailing-service
+      dockerfile: Dockerfile
+    networks:
+      - micro-network
+    environment:
+      - SPRING_PROFILES_ACTIVE=stg
+    depends_on:
+      config-server:
+        condition: service_healthy
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://api-gateway:8765/mailing-service/actuator/health" ]
       interval: 30s
       timeout: 10s
       retries: 3
