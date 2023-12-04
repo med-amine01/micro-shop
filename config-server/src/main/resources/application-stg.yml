@@ -7,3 +7,13 @@ eureka:
   instance:
     instance-id: ${spring.application.name}:${spring.application.instance-id:${random.value}}
     prefer-ip-address: true
+
+spring:
+  cloud:
+    config:
+      server:
+        git:
+          uri: ${GIT_URL}
+          clone-on-start: true
+          username: med-amine01
+          password: ${STG_GIT_TOKEN}

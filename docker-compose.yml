@@ -209,11 +209,6 @@ services:
     depends_on:
       config-server:
         condition: service_healthy
-    healthcheck:
-      test: [ "CMD", "curl", "-f", "http://api-gateway:8765/mailing-service/actuator/health" ]
-      interval: 30s
-      timeout: 10s
-      retries: 3
 
 volumes:
   db:

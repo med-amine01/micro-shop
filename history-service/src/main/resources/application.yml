@@ -1,0 +1,19 @@
+server:
+  port: 0
+
+spring:
+  application:
+    name: history-service
+  profiles:
+    active: dev
+
+rabbitmq:
+  history:
+    inventory:
+      queue: ${broker.inventory.history.queue}
+      exchange: ${broker.inventory.history.exchange}
+      routing-key: ${broker.inventory.history.routing-key}
+    order:
+      queue: ${broker.order.history.queue}
+      exchange: ${broker.order.history.exchange}
+      routing-key: ${broker.order.history.routing-key}

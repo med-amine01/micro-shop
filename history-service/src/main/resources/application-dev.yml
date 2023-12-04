@@ -1,0 +1,9 @@
+spring:
+  # Config server
+  config:
+    import: configserver:${dev.config.server.url}
+  data:
+    mongodb:
+      host: localhost
+      port: 27017
+      database: ${database.name}

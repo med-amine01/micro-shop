@@ -26,6 +26,7 @@
         <module>inventory-service</module>
         <module>identity-service</module>
         <module>mailing-service</module>
+        <module>history-service</module>
     </modules>
 
     <properties>
