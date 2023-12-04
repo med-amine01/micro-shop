@@ -8,6 +8,11 @@ spring:
     active: dev
 
 rabbitmq:
-  queue: ${broker.product.queue}
-  exchange: ${broker.product.exchange}
-  routing-key: ${broker.product.routing-key}
+  product :
+    queue: ${broker.product.queue}
+    exchange: ${broker.product.exchange}
+    routing-key: ${broker.product.routing-key}
+  history:
+    queue: ${broker.history.queue}
+    exchange: ${broker.history.exchange}
+    routing-key: ${broker.history.routing-key}

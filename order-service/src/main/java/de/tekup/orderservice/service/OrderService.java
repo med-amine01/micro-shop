@@ -330,7 +330,7 @@ public class OrderService {
     private void sendingToQueue(OrderResponse orderResponse) {
         try {
             // Sending to rabbitMq
-            rabbitTemplate.convertAndSend(RabbitMqConfig.EXCHANGE, RabbitMqConfig.ROUTING_KEY, orderResponse);
+            rabbitTemplate.convertAndSend(RabbitMqConfig.MAILING_EXCHANGE, RabbitMqConfig.MAILING_ROUTING_KEY, orderResponse);
             log.info("Order placed and sent to the mailing queue");
         } catch (Exception e) {
             log.error("Couldn't send order to queue " + e.getMessage());
