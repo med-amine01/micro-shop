@@ -10,22 +10,33 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import javax.annotation.PostConstruct;
+
 @Configuration
 @Data
 public class RabbitMqConfig {
     
+    public static String MAILING_QUEUE;
+    public static String MAILING_EXCHANGE;
+    public static String MAILING_ROUTING_KEY;
+    
+    public static String HISTORY_QUEUE;
+    public static String HISTORY_EXCHANGE;
+    public static String HISTORY_ROUTING_KEY;
+    
     @Value("${rabbitmq.mailing.queue}")
-    private String queue;
-    
+    private String mailingQueue;
     @Value("${rabbitmq.mailing.exchange}")
-    private String exchange;
-    
+    private String mailingExchange;
     @Value("${rabbitmq.mailing.routing-key}")
-    private String routingKey;
+    private String mailingRoutingKey;
     
-    public static String QUEUE;
-    public static String EXCHANGE;
-    public static String ROUTING_KEY;
+    @Value("${rabbitmq.history.queue}")
+    private String historyQueue;
+    @Value("${rabbitmq.history.exchange}")
+    private String historyExchange;
+    @Value("${rabbitmq.history.routing-key}")
+    private String historyRoutingKey;
     
     private AmqpAdmin amqpAdmin;
     
@@ -33,40 +44,42 @@ public class RabbitMqConfig {
         this.amqpAdmin = amqpAdmin;
     }
     
-    @Value("${rabbitmq.mailing.queue}")
-    public void setQueue(String queue) {
-        RabbitMqConfig.QUEUE = queue;
-    }
-    
-    @Value("${rabbitmq.mailing.exchange}")
-    public void setExchange(String exchange) {
-        RabbitMqConfig.EXCHANGE = exchange;
-    }
-    
-    @Value("${rabbitmq.mailing.routing-key}")
-    public void setRoutingKey(String routingKey) {
-        RabbitMqConfig.ROUTING_KEY = routingKey;
-    }
-    
     @Bean
-    // amqpAdmin.declareQueue(new Queue(getQueue(), true));
     public void initializeQueue() {
         amqpAdmin.declareQueue(queue());
     }
     
     @Bean
     public Queue queue() {
-        return new Queue(queue);
+        return new Queue(mailingQueue);
     }
     
     @Bean
     public TopicExchange exchange() {
-        return new TopicExchange(exchange);
+        return new TopicExchange(mailingExchange);
     }
     
     @Bean
     public Binding binding(Queue queue, TopicExchange exchange) {
-        return BindingBuilder.bind(queue).to(exchange).with(routingKey);
+        return BindingBuilder.bind(queue).to(exchange).with(mailingRoutingKey);
+    }
+    
+    @Bean
+    public Queue inventoryHistoryQueue() {
+        return new Queue(historyQueue);
+    }
+    
+    @Bean
+    public TopicExchange inventoryHistoryExchange() {
+        return new TopicExchange(historyExchange);
+    }
+    
+    @Bean
+    public Binding inventoryHistoryBinding(Queue inventoryHistoryQueue, TopicExchange inventoryHistoryExchange) {
+        return BindingBuilder
+                .bind(inventoryHistoryQueue)
+                .to(inventoryHistoryExchange)
+                .with(historyRoutingKey);
     }
     
     @Bean
@@ -80,5 +93,18 @@ public class RabbitMqConfig {
         template.setMessageConverter(getMessageConverter());
         
         return template;
+    }
+    
+    @PostConstruct
+    public void setValues() {
+        // Mailing config
+        MAILING_QUEUE = this.mailingQueue;
+        MAILING_EXCHANGE = this.mailingExchange;
+        MAILING_ROUTING_KEY = this.mailingRoutingKey;
+        
+        // History config
+        HISTORY_QUEUE = this.historyQueue;
+        HISTORY_EXCHANGE = this.historyExchange;
+        HISTORY_ROUTING_KEY = this.historyRoutingKey;
     }
 }
