@@ -13,6 +13,6 @@ rabbitmq:
     exchange: ${broker.product.exchange}
     routing-key: ${broker.product.routing-key}
   history:
-    queue: ${broker.history.queue}
-    exchange: ${broker.history.exchange}
-    routing-key: ${broker.history.routing-key}
+    queue: ${broker.inventory.history.queue}
+    exchange: ${broker.inventory.history.exchange}
+    routing-key: ${broker.inventory.history.routing-key}

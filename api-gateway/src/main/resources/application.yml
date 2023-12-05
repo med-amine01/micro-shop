@@ -326,3 +326,25 @@ spring:
             - Method=GET
           filters:
             - RewritePath=/mailing-service/(?<segment>.*), /${segment}
+
+        # ==================================== HISTORY SERVICE - INVENTORY ====================================
+        ## History-service::GET-inventories
+        - id: history-service-inventory
+          uri: lb://history-service
+          predicates:
+            - Path=/history-service/api/v1/inventories/**
+            - Method=GET
+          filters:
+            - RemoveRequestHeader=Cookie
+            - RewritePath=/history-service/(?<segment>.*), /${segment}
+            - AuthorizationHeaderFilter=ROLE_ADMIN READ
+        ## History-service::GET-orders
+        - id: history-service-orders
+          uri: lb://history-service
+          predicates:
+            - Path=/history-service/api/v1/orders/**
+            - Method=GET
+          filters:
+            - RemoveRequestHeader=Cookie
+            - RewritePath=/history-service/(?<segment>.*), /${segment}
+            - AuthorizationHeaderFilter=ROLE_ADMIN READ

@@ -1,0 +1,15 @@
+spring:
+  # Config server
+  config:
+    import: configserver:${stg.config.server.url}
+  rabbitmq:
+    host: rabbitmq
+    template:
+      default-receive-queue: ${broker.history.queue}
+      exchange: ${broker.history.exchange}
+      routing-key: ${broker.history.routing-key}
+  data:
+    mongodb:
+      host: ${stg.mongo.hostname}
+      port: ${mongo.default.port}
+      database: ${database.name}

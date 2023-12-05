@@ -17,8 +17,23 @@ services:
     ports:
       - "6666:3306"
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://mysql-db:3306" ]
-      interval: 10s
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+
+  mongo-db:
+    container_name: mongo-db
+    image: mongo:latest
+    restart: always
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - micro-network
+    ports:
+      - "27017:27017"
+    healthcheck:
+      test: ["CMD","mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 5s
       timeout: 5s
       retries: 3
 
@@ -210,8 +225,25 @@ services:
       config-server:
         condition: service_healthy
 
+  history-service:
+    container_name: history-service
+    build:
+      context: ./history-service
+      dockerfile: Dockerfile
+    networks:
+      - micro-network
+    environment:
+      - SPRING_PROFILES_ACTIVE=stg
+    depends_on:
+      config-server:
+        condition: service_healthy
+      mongo-db:
+        condition: service_healthy
+
 volumes:
   db:
+    driver: local
+  mongo-data:
     driver: local
 
 networks:

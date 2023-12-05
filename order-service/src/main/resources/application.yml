@@ -13,8 +13,8 @@ rabbitmq:
     queue: ${broker.mailing.queue}
     exchange: ${broker.mailing.exchange}
     routing-key: ${broker.mailing.routing-key}
-  # History config
+  # History order config
   history:
-    queue: ${broker.history.queue}
-    exchange: ${broker.history.exchange}
-    routing-key: ${broker.history.routing-key}
+    queue: ${broker.order.history.queue}
+    exchange: ${broker.order.history.exchange}
+    routing-key: ${broker.order.history.routing-key}
