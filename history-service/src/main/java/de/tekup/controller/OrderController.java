@@ -3,9 +3,11 @@ package de.tekup.controller;
 import de.tekup.entity.Order;
 import de.tekup.service.OrderService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
@@ -25,11 +27,5 @@ public class OrderController {
     public ResponseEntity<Order> getOrderByNumber(@PathVariable String orderNumber) {
         Order order = orderService.findOrderByNumber(orderNumber);
         return ResponseEntity.ok(order);
-    }
-
-    @PostMapping
-    public ResponseEntity<Order> createOrder(@RequestBody Order order) {
-        Order savedOrder = orderService.saveOrder(order);
-        return new ResponseEntity<>(savedOrder, HttpStatus.CREATED);
     }
 }

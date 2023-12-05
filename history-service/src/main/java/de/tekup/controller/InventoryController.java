@@ -3,9 +3,11 @@ package de.tekup.controller;
 import de.tekup.entity.Inventory;
 import de.tekup.service.InventoryService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
@@ -25,11 +27,5 @@ public class InventoryController {
     public ResponseEntity<Inventory> getInventoryById(@PathVariable Long id) {
         Inventory inventory = inventoryService.findInventoryById(id);
         return ResponseEntity.ok(inventory);
-    }
-
-    @PostMapping
-    public ResponseEntity<Inventory> createInventory(@RequestBody Inventory inventory) {
-        Inventory savedInventory = inventoryService.saveInventory(inventory);
-        return new ResponseEntity<>(savedInventory, HttpStatus.CREATED);
     }
 }

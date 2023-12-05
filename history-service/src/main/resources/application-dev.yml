@@ -4,6 +4,6 @@ spring:
     import: configserver:${dev.config.server.url}
   data:
     mongodb:
-      host: localhost
-      port: 27017
+      host: ${dev.mongo.hostname}
+      port: ${mongo.default.port}
       database: ${database.name}
