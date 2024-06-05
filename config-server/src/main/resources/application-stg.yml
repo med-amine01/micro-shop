@@ -15,5 +15,4 @@ spring:
         git:
           uri: ${GIT_URL}
           clone-on-start: true
-          username: med-amine01
-          password: ${STG_GIT_TOKEN}
+          default-label: main
