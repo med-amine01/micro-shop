@@ -3,7 +3,7 @@
 start:
 	@echo "\033[32m🚀 Starting micro-shop docker services...\033[0m"
 	@mvn clean package -DskipTests
-	@docker-compose -f docker-compose.yml up -d
+	@docker compose -f docker-compose.yml up -d
 	@echo "            _                          _                 "
 	@echo "           (_)                        | |                "
 	@echo "  _ __ ___  _  ___ _ __ ___ ______ ___| |__   ___  _ __  "
@@ -18,7 +18,7 @@ start:
 .PHONY: stop
 stop:
 	@echo "Stopping micro-shop docker services..."
-	@docker-compose -f docker-compose.yml down
+	@docker compose -f docker-compose.yml down
 	@echo "🛑 micro-shop docker services stopped!"
 
 
